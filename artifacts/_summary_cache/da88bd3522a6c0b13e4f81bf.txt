@@ -1,0 +1,1 @@
+Soldering without proper board type voids warranty.

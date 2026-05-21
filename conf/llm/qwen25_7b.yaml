@@ -1,0 +1,9 @@
+name: qwen25_7b
+tag: qwen2.5:7b-instruct
+# Summarization needs to fit the full doc; long-tail 20NG posts can be ~10K tokens.
+summary_num_ctx: 16384
+# Classification operates on summaries (or short raw docs) + a ~300-token prompt.
+# Keeping this small materially speeds up CPU inference.
+classify_num_ctx: 2048
+temperature: 0.0
+seed: 0

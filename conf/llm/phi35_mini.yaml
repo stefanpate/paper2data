@@ -1,0 +1,6 @@
+name: phi35_mini
+tag: phi3.5:3.8b-mini-instruct
+summary_num_ctx: 16384
+classify_num_ctx: 2048
+temperature: 0.0
+seed: 0

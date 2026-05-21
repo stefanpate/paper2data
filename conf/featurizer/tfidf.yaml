@@ -1,0 +1,17 @@
+name: tfidf
+estimator:
+  _target_: sklearn.feature_extraction.text.TfidfVectorizer
+  lowercase: true
+  stop_words: english
+  ngram_range: [1, 1]
+  min_df: 2
+  max_df: 0.95
+  sublinear_tf: true
+
+# Param grid keys are prefixed with the pipeline step name ("tfidf__")
+# so they compose with the model grid inside the inner CV.
+param_grid:
+  tfidf__ngram_range:
+    - [1, 1]
+    - [1, 2]
+  tfidf__min_df: [2, 5]

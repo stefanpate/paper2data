@@ -1,0 +1,6 @@
+name: complement_nb
+estimator:
+  _target_: sklearn.naive_bayes.ComplementNB
+param_grid:
+  clf__alpha: [0.01, 0.1, 0.5, 1.0]
+  clf__norm: [false, true]

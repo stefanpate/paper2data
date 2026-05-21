@@ -1,0 +1,9 @@
+defaults:
+  - st_embed
+  - _self_
+
+name: bge_small
+model_id: BAAI/bge-small-en-v1.5
+# BGE-v1.5 docs: no prefix needed for symmetric similarity / classification.
+passage_prefix: ""
+normalize_embeddings: true

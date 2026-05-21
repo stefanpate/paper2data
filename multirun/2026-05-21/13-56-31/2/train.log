@@ -1,0 +1,21 @@
+[2026-05-21 14:34:10,919][paper2data.train][INFO] - Loading 20NG (subset=all)
+[2026-05-21 14:34:12,274][paper2data.train][INFO] - Loaded 18846 documents across 20 classes
+[2026-05-21 14:34:12,280][paper2data.train][INFO] - Pre-encoding documents with BAAI/bge-small-en-v1.5
+[2026-05-21 14:34:12,311][paper2data.embeddings][INFO] - Embedding cache HIT: fa5197d306eeb990a72f4451.npy (15076 x 384) in 0.01s
+[2026-05-21 14:34:12,320][paper2data.embeddings][INFO] - Embedding cache HIT: ca1eb8d6060325174f9d1770.npy (3770 x 384) in 0.00s
+[2026-05-21 14:34:12,604][paper2data.train][INFO] - Param grid: {'clf__n_estimators': [200], 'clf__max_features': ['sqrt', 'log2'], 'clf__min_samples_leaf': [1, 5]}
+[2026-05-21 14:34:12,605][paper2data.train][INFO] - Running nested CV: 5 outer x 3 inner folds
+[2026-05-21 14:34:12,608][paper2data.train][INFO] - Outer fold 1/5
+[2026-05-21 14:35:25,295][paper2data.train][INFO] -   best_params={'clf__max_features': 'log2', 'clf__min_samples_leaf': 1, 'clf__n_estimators': 200}  outer f1_macro=0.6790
+[2026-05-21 14:35:25,295][paper2data.train][INFO] - Outer fold 2/5
+[2026-05-21 14:37:09,401][paper2data.train][INFO] -   best_params={'clf__max_features': 'sqrt', 'clf__min_samples_leaf': 1, 'clf__n_estimators': 200}  outer f1_macro=0.6701
+[2026-05-21 14:37:09,402][paper2data.train][INFO] - Outer fold 3/5
+[2026-05-21 14:38:41,245][paper2data.train][INFO] -   best_params={'clf__max_features': 'sqrt', 'clf__min_samples_leaf': 1, 'clf__n_estimators': 200}  outer f1_macro=0.6730
+[2026-05-21 14:38:41,246][paper2data.train][INFO] - Outer fold 4/5
+[2026-05-21 14:40:11,841][paper2data.train][INFO] -   best_params={'clf__max_features': 'sqrt', 'clf__min_samples_leaf': 1, 'clf__n_estimators': 200}  outer f1_macro=0.6799
+[2026-05-21 14:40:11,842][paper2data.train][INFO] - Outer fold 5/5
+[2026-05-21 14:41:43,423][paper2data.train][INFO] -   best_params={'clf__max_features': 'sqrt', 'clf__min_samples_leaf': 1, 'clf__n_estimators': 200}  outer f1_macro=0.6730
+[2026-05-21 14:41:43,423][paper2data.train][INFO] - Nested CV f1_macro: 0.6750 ± 0.0038
+[2026-05-21 14:41:43,424][paper2data.train][INFO] - Refitting on full train with inner CV for final HPO
+[2026-05-21 14:43:42,767][paper2data.train][INFO] - Held-out test f1_macro=0.6942 acc=0.7188
+[2026-05-21 14:43:43,319][paper2data.train][INFO] - Wrote artifacts to /home/stef/paper2data/artifacts/random_forest_bge_small_20ng

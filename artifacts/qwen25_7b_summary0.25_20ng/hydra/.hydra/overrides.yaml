@@ -1,0 +1,3 @@
+- llm=qwen25_7b
+- fraction=0.25
+- +smoke=5

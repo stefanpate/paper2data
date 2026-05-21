@@ -1,0 +1,18 @@
+[2026-05-20 15:14:38,423][paper2data.train][INFO] - Loading 20NG (subset=all)
+[2026-05-20 15:14:39,884][paper2data.train][INFO] - Loaded 18846 documents across 20 classes
+[2026-05-20 15:14:39,896][paper2data.train][INFO] - Param grid: {'tfidf__ngram_range': [(1, 1), (1, 2)], 'tfidf__min_df': [2, 5], 'clf__alpha': [0.01, 0.1, 0.5, 1.0]}
+[2026-05-20 15:14:39,896][paper2data.train][INFO] - Running nested CV: 5 outer x 3 inner folds
+[2026-05-20 15:14:39,902][paper2data.train][INFO] - Outer fold 1/5
+[2026-05-20 15:15:10,739][paper2data.train][INFO] -   best_params={'clf__alpha': 0.01, 'tfidf__min_df': 2, 'tfidf__ngram_range': (1, 2)}  outer f1_macro=0.7384
+[2026-05-20 15:15:10,740][paper2data.train][INFO] - Outer fold 2/5
+[2026-05-20 15:15:42,840][paper2data.train][INFO] -   best_params={'clf__alpha': 0.01, 'tfidf__min_df': 2, 'tfidf__ngram_range': (1, 2)}  outer f1_macro=0.7397
+[2026-05-20 15:15:42,840][paper2data.train][INFO] - Outer fold 3/5
+[2026-05-20 15:16:16,767][paper2data.train][INFO] -   best_params={'clf__alpha': 0.01, 'tfidf__min_df': 2, 'tfidf__ngram_range': (1, 2)}  outer f1_macro=0.7551
+[2026-05-20 15:16:16,767][paper2data.train][INFO] - Outer fold 4/5
+[2026-05-20 15:16:54,591][paper2data.train][INFO] -   best_params={'clf__alpha': 0.01, 'tfidf__min_df': 2, 'tfidf__ngram_range': (1, 2)}  outer f1_macro=0.7519
+[2026-05-20 15:16:54,592][paper2data.train][INFO] - Outer fold 5/5
+[2026-05-20 15:17:32,127][paper2data.train][INFO] -   best_params={'clf__alpha': 0.01, 'tfidf__min_df': 2, 'tfidf__ngram_range': (1, 2)}  outer f1_macro=0.7344
+[2026-05-20 15:17:32,128][paper2data.train][INFO] - Nested CV f1_macro: 0.7439 ± 0.0081
+[2026-05-20 15:17:32,128][paper2data.train][INFO] - Refitting on full train with inner CV for final HPO
+[2026-05-20 15:18:20,019][paper2data.train][INFO] - Held-out test f1_macro=0.7597 acc=0.7716
+[2026-05-20 15:18:20,639][paper2data.train][INFO] - Wrote artifacts to /home/stef/paper2data/artifacts/nb_tfidf_20ng

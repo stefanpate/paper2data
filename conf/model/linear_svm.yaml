@@ -1,0 +1,6 @@
+name: linear_svm
+estimator:
+  _target_: sklearn.svm.LinearSVC
+  dual: auto
+param_grid:
+  clf__C: [0.1, 1.0, 10.0]

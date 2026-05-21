@@ -1,0 +1,12 @@
+defaults:
+  - st_embed
+  - _self_
+
+name: nomic_v15
+model_id: nomic-ai/nomic-embed-text-v1.5
+# Nomic recommends a task prefix; "classification" is the right one here.
+passage_prefix: "classification: "
+normalize_embeddings: true
+# Nomic's HF repo ships custom modeling code.
+trust_remote_code: true
+batch_size: 32

@@ -1,0 +1,2 @@
+- featurizer=bge_small
+- model=random_forest

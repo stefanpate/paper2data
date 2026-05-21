@@ -1,0 +1,9 @@
+name: random_forest
+estimator:
+  _target_: sklearn.ensemble.RandomForestClassifier
+  n_jobs: 1  # parallelism is handled at the outer CV level
+  random_state: 0
+param_grid:
+  clf__n_estimators: [200]
+  clf__max_features: [sqrt, log2]
+  clf__min_samples_leaf: [1, 5]

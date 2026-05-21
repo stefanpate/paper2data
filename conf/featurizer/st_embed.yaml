@@ -1,0 +1,24 @@
+# Sentence-transformer document embeddings.
+#
+# These featurizers produce dense float vectors, which are NOT compatible
+# with MultinomialNB / ComplementNB (those require non-negative count-like
+# features). The training script raises a clear error in that case.
+#
+# Embeddings are deterministic per (model, text) so they are computed once
+# per corpus and cached to disk; nested CV / HPO then runs over the dense
+# matrix, avoiding redundant encode calls inside GridSearchCV.
+
+name: st_embed
+precomputed: true
+model_id: ???           # set by concrete preset (bge_small, nomic_v15, ...)
+batch_size: 64
+normalize_embeddings: true
+# Prefixes to prepend to each document before encoding. Some models
+# (BGE, E5, Nomic) require these for best quality. Empty string = no prefix.
+passage_prefix: ""
+trust_remote_code: false
+device: null            # null -> sentence-transformers picks (cpu/cuda)
+cache_dir: ${hydra:runtime.cwd}/artifacts/_embed_cache
+
+# No HPO over the encoder.
+param_grid: {}

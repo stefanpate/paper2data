@@ -1,0 +1,7 @@
+# ~4x faster than qwen25_7b on CPU. Recommended default when no GPU is available.
+name: qwen25_3b
+tag: qwen2.5:3b-instruct
+summary_num_ctx: 16384
+classify_num_ctx: 2048
+temperature: 0.0
+seed: 0

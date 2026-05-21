@@ -1,0 +1,2 @@
+- featurizer=bge_small
+- model=linear_svm

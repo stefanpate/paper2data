@@ -1,0 +1,37 @@
+[2026-05-21 16:01:15,876][paper2data.llm_classify][INFO] - Loading 20NG (subset=all)
+[2026-05-21 16:01:17,405][paper2data.llm_classify][INFO] - Held-out test set: 3770 docs, 20 classes
+[2026-05-21 16:01:17,406][paper2data.llm_classify][INFO] - SMOKE MODE: truncating to first 20 docs
+[2026-05-21 16:01:17,406][paper2data.llm_classify][INFO] - Summarizing test set at fraction=0.25
+[2026-05-21 16:01:37,790][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:01:48,402][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:02:06,459][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:02:16,035][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:05:26,158][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:05:44,056][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:06:21,300][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:06:36,799][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:06:56,827][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:07:09,125][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:07:42,253][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:07:50,548][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:07:57,266][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:08:36,099][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:09:07,548][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:09:13,779][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+[2026-05-21 16:22:01,136][paper2data.llm_classify][INFO] - Loading 20NG (subset=all)
+[2026-05-21 16:22:06,173][paper2data.llm_classify][INFO] - Held-out test set: 3770 docs, 20 classes
+[2026-05-21 16:22:06,173][paper2data.llm_classify][INFO] - SMOKE MODE: truncating to first 20 docs
+[2026-05-21 16:22:06,174][paper2data.llm_classify][INFO] - Summarizing test set at fraction=0.25
+[2026-05-21 16:22:32,214][paper2data.llm_classify][INFO] - Loading 20NG (subset=all)
+[2026-05-21 16:22:36,756][paper2data.llm_classify][INFO] - Held-out test set: 3770 docs, 20 classes
+[2026-05-21 16:22:36,757][paper2data.llm_classify][INFO] - SMOKE MODE: truncating to first 5 docs
+[2026-05-21 16:22:36,757][paper2data.llm_classify][INFO] - Summarizing test set at fraction=0.25
+[2026-05-21 16:22:37,572][paper2data.llm_summaries][INFO] - Summarized 5 docs at fraction=0.25 (5 cache hits, 0 misses) in 0.0s
+[2026-05-21 16:22:37,702][paper2data.llm_classify][INFO] - Classifying 5 docs with qwen2.5:7b-instruct
+[2026-05-21 16:35:47,916][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+[2026-05-21 16:35:55,072][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+[2026-05-21 16:36:02,068][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+[2026-05-21 16:36:08,117][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+[2026-05-21 16:36:27,906][httpx][INFO] - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+[2026-05-21 16:36:27,919][paper2data.llm_classify][INFO] - Test f1_macro=0.2500 acc=0.4000 (n=5, unparseable=0)
+[2026-05-21 16:36:27,934][paper2data.llm_classify][INFO] - Wrote artifacts to /home/stef/paper2data/artifacts/qwen25_7b_summary0.25_20ng

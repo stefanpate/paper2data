@@ -1,0 +1,5 @@
+.venv
+.claude
+__pycache__/
+*.pyc
+artifacts/random_forest_bge_small_20ng/best_model.joblib

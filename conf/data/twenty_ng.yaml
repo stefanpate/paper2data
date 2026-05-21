@@ -1,0 +1,11 @@
+name: 20ng
+# Which subset of 20NG to load: 'train', 'test', or 'all'.
+# We use 'all' and apply our own stratified split for full control.
+subset: all
+# Remove these metadata fields, which are known to leak labels.
+remove:
+  - headers
+  - footers
+  - quotes
+# Optional: keep only a subset of categories for fast iteration. null = all 20.
+categories: null

@@ -1,0 +1,9 @@
+name: nested
+outer_splits: 5
+inner_splits: 3
+shuffle: true
+# scoring metric used to select hyperparameters in the inner CV
+scoring: f1_macro
+# When True, refit the inner search on each outer-train fold (needed
+# to score the held-out outer fold). Always True for nested CV.
+refit_inner: true

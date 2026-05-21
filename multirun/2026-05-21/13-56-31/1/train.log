@@ -1,0 +1,21 @@
+[2026-05-21 14:31:13,590][paper2data.train][INFO] - Loading 20NG (subset=all)
+[2026-05-21 14:31:15,034][paper2data.train][INFO] - Loaded 18846 documents across 20 classes
+[2026-05-21 14:31:15,040][paper2data.train][INFO] - Pre-encoding documents with BAAI/bge-small-en-v1.5
+[2026-05-21 14:31:15,080][paper2data.embeddings][INFO] - Embedding cache HIT: fa5197d306eeb990a72f4451.npy (15076 x 384) in 0.01s
+[2026-05-21 14:31:15,094][paper2data.embeddings][INFO] - Embedding cache HIT: ca1eb8d6060325174f9d1770.npy (3770 x 384) in 0.00s
+[2026-05-21 14:31:15,095][paper2data.train][INFO] - Param grid: {'clf__C': [0.1, 1.0, 10.0]}
+[2026-05-21 14:31:15,095][paper2data.train][INFO] - Running nested CV: 5 outer x 3 inner folds
+[2026-05-21 14:31:15,098][paper2data.train][INFO] - Outer fold 1/5
+[2026-05-21 14:31:44,022][paper2data.train][INFO] -   best_params={'clf__C': 1.0}  outer f1_macro=0.7224
+[2026-05-21 14:31:44,022][paper2data.train][INFO] - Outer fold 2/5
+[2026-05-21 14:32:11,663][paper2data.train][INFO] -   best_params={'clf__C': 1.0}  outer f1_macro=0.7138
+[2026-05-21 14:32:11,664][paper2data.train][INFO] - Outer fold 3/5
+[2026-05-21 14:32:37,842][paper2data.train][INFO] -   best_params={'clf__C': 1.0}  outer f1_macro=0.7067
+[2026-05-21 14:32:37,842][paper2data.train][INFO] - Outer fold 4/5
+[2026-05-21 14:33:06,304][paper2data.train][INFO] -   best_params={'clf__C': 1.0}  outer f1_macro=0.7158
+[2026-05-21 14:33:06,305][paper2data.train][INFO] - Outer fold 5/5
+[2026-05-21 14:33:32,599][paper2data.train][INFO] -   best_params={'clf__C': 1.0}  outer f1_macro=0.6978
+[2026-05-21 14:33:32,600][paper2data.train][INFO] - Nested CV f1_macro: 0.7113 ± 0.0084
+[2026-05-21 14:33:32,600][paper2data.train][INFO] - Refitting on full train with inner CV for final HPO
+[2026-05-21 14:34:10,789][paper2data.train][INFO] - Held-out test f1_macro=0.7256 acc=0.7422
+[2026-05-21 14:34:10,805][paper2data.train][INFO] - Wrote artifacts to /home/stef/paper2data/artifacts/linear_svm_bge_small_20ng

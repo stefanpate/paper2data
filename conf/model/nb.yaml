@@ -1,0 +1,5 @@
+name: nb
+estimator:
+  _target_: sklearn.naive_bayes.MultinomialNB
+param_grid:
+  clf__alpha: [0.01, 0.1, 0.5, 1.0]

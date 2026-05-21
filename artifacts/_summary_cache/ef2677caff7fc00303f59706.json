@@ -1,0 +1,10 @@
+{
+  "prompt_version": "v1",
+  "model_tag": "qwen2.5:7b-instruct",
+  "doc_sha1": "dab0e2140502858f",
+  "target_words": 8,
+  "source_words": 31,
+  "fraction": 0.25,
+  "temperature": 0.0,
+  "seed": 0
+}

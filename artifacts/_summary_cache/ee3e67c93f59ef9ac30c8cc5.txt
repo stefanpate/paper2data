@@ -1,0 +1,1 @@
+Hi netters, Christine asks about DECstation, HP, Amiga, Apollo colour display restrictions and potential issues with displaying 16-bit images using X-windows software for her image analysis project GUI implementation. She seeks advice or resources to resolve problems related to future 24-bit image display. Please email replies.

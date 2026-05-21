@@ -1,0 +1,30 @@
+defaults:
+  - data: twenty_ng
+  - llm: qwen25_7b
+  - _self_
+
+seed: 42
+test_size: 0.2
+
+# Per-doc summary length as a fraction of the document's word count.
+# 1.0 is a sentinel meaning "use the raw document" (no LLM call).
+fraction: 0.25
+
+# Used by scripts/precompute_summaries.py to walk multiple fractions.
+fractions: [0.1, 0.25, 0.5, 0.75, 1.0]
+
+# Optional smoke-test cap on number of docs (null = all).
+smoke: null
+
+summary_cache_dir: ${hydra:runtime.cwd}/artifacts/_summary_cache
+
+run_name: ${llm.name}_summary${fraction}_${data.name}
+artifacts_dir: ${hydra:runtime.cwd}/artifacts/${run_name}
+
+hydra:
+  run:
+    dir: ${artifacts_dir}/hydra
+  sweep:
+    dir: ${hydra:runtime.cwd}/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    chdir: false

@@ -1,0 +1,1 @@
+I have a mystery part NEC AC100 from a low voltage supply of an NEC Multisync I monitor. It's in square package, 3 leads, CR691 board reference. G pin goes to zener diode, T1 to capacitor, T2 to bridge rectifier. Anyone identifying it or knowing where to buy one like it should email ck3i@andrew.cmu.edu as NEC doesn't know what it is or how to replace it.

@@ -1,0 +1,9 @@
+# Smallest sane option — ~10x faster than 7B on CPU. Worth comparing alongside
+# the bigger models to see how much compression cost is from "smaller LLM" vs
+# "shorter summary."
+name: qwen25_1_5b
+tag: qwen2.5:1.5b-instruct
+summary_num_ctx: 16384
+classify_num_ctx: 2048
+temperature: 0.0
+seed: 0

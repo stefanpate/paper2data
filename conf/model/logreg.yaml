@@ -1,0 +1,7 @@
+name: logreg
+estimator:
+  _target_: sklearn.linear_model.LogisticRegression
+  max_iter: 1000
+  solver: lbfgs
+param_grid:
+  clf__C: [0.1, 1.0, 10.0]
