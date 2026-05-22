@@ -26,10 +26,15 @@ start_ollama() {
 
   local port
   port="$(pick_free_port)"
-  export OLLAMA_HOST="127.0.0.1:${port}"
+  # Quest runs ollama inside Singularity; the server must bind 0.0.0.0 and the
+  # env var must be mirrored as SINGULARITYENV_* to cross the container boundary.
+  export OLLAMA_PORT="${port}"
+  export OLLAMA_HOST="0.0.0.0:${port}"
+  export SINGULARITYENV_OLLAMA_HOST="${OLLAMA_HOST}"
 
   # Keep model weights on $SCRATCH if available — they're big and node-local /tmp may be too small.
   export OLLAMA_MODELS="${OLLAMA_MODELS:-${SCRATCH:-$HOME}/ollama_models}"
+  export SINGULARITYENV_OLLAMA_MODELS="${OLLAMA_MODELS}"
   mkdir -p "$OLLAMA_MODELS"
 
   echo "[ollama] starting server on $OLLAMA_HOST, models dir $OLLAMA_MODELS"
@@ -39,12 +44,18 @@ start_ollama() {
 
   # Wait for the server to accept connections (max ~60s).
   for i in $(seq 1 60); do
-    if curl -fsS "http://${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
+    if curl -fsS "http://127.0.0.1:${port}/api/tags" >/dev/null 2>&1; then
       echo "[ollama] server up after ${i}s"
       break
     fi
     sleep 1
   done
+
+  # Server bound to 0.0.0.0:port for the container; switch the CLIENT-facing
+  # OLLAMA_HOST to 127.0.0.1:port so `ollama pull` and the python client connect
+  # via loopback. The already-running server keeps its original bind.
+  export OLLAMA_HOST="127.0.0.1:${port}"
+  export SINGULARITYENV_OLLAMA_HOST="${OLLAMA_HOST}"
 
   echo "[ollama] pulling ${OLLAMA_MODEL_TAG}"
   ollama pull "${OLLAMA_MODEL_TAG}"
