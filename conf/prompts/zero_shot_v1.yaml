@@ -1,0 +1,30 @@
+# Prompt templates used by the LLM summarize+classify pipeline.
+#
+# `version` is part of the summary cache key — bump it any time you edit
+# `summary` so stale cached summaries are not silently reused.
+#
+# Required placeholders:
+#   summary:  {target_words}, {document}
+#   classify: {n_categories}, {categories_block}, {text}
+
+version: v1
+
+summary: |
+  You are summarizing a Usenet newsgroup post for a downstream classifier.
+  Produce a faithful summary in approximately {target_words} words. Preserve topical vocabulary (named entities, jargon, technical terms) — these are the strongest classification signal. Do not add commentary or preamble.
+
+  POST:
+  {document}
+
+  SUMMARY:
+
+classify: |
+  You are classifying a Usenet newsgroup post into exactly one of {n_categories} categories.
+
+  Categories:
+  {categories_block}
+
+  POST:
+  {text}
+
+  Choose the single best category. Respond with JSON matching the schema.

@@ -1,6 +1,7 @@
 defaults:
   - data: twenty_ng
   - llm: qwen25_7b
+  - prompts: zero_shot_v1
   - _self_
 
 seed: 42

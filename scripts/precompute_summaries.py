@@ -59,6 +59,8 @@ def main(cfg: DictConfig) -> None:
             num_ctx=cfg.llm.summary_num_ctx,
             temperature=cfg.llm.temperature,
             seed=cfg.llm.seed,
+            prompt_template=cfg.prompts.summary,
+            prompt_version=cfg.prompts.version,
         )
 
     log.info("Done. Cache dir: %s", cfg.summary_cache_dir)

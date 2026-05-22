@@ -18,10 +18,13 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-# Bump this string when the prompt template changes — invalidates cache.
-PROMPT_VERSION = "v1"
+# Default prompt + version are kept here as a fallback so library callers can
+# use this module without wiring through a config. The canonical copy lives in
+# `conf/prompts/zero_shot_v1.yaml`; bump the version there (and here) whenever the
+# template changes — the version participates in the cache key.
+DEFAULT_PROMPT_VERSION = "v1"
 
-SUMMARY_PROMPT = """You are summarizing a Usenet newsgroup post for a downstream classifier.
+DEFAULT_SUMMARY_PROMPT = """You are summarizing a Usenet newsgroup post for a downstream classifier.
 Produce a faithful summary in approximately {target_words} words. Preserve topical \
 vocabulary (named entities, jargon, technical terms) — these are the strongest \
 classification signal. Do not add commentary or preamble.
@@ -50,10 +53,10 @@ def _doc_sha1(doc: str) -> str:
 
 
 def _cache_key(*, model_tag: str, doc_sha1: str, target_words: int,
-               temperature: float, seed: int) -> str:
+               temperature: float, seed: int, prompt_version: str) -> str:
     payload = json.dumps(
         {
-            "v": PROMPT_VERSION,
+            "v": prompt_version,
             "model_tag": model_tag,
             "doc": doc_sha1,
             "target_words": target_words,
@@ -80,6 +83,8 @@ def summarize_doc(
     temperature: float = 0.0,
     seed: int = 0,
     client=None,
+    prompt_template: str = DEFAULT_SUMMARY_PROMPT,
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
 ) -> SummaryResult:
     """Summarize one document at the given length fraction, with on-disk cache.
 
@@ -108,6 +113,7 @@ def summarize_doc(
         target_words=target_words,
         temperature=temperature,
         seed=seed,
+        prompt_version=prompt_version,
     )
     txt_path = cache_dir / f"{key}.txt"
     meta_path = cache_dir / f"{key}.json"
@@ -125,7 +131,7 @@ def summarize_doc(
         import ollama
         client = ollama.Client(host=os.environ.get("OLLAMA_HOST"))
 
-    prompt = SUMMARY_PROMPT.format(target_words=target_words, document=doc)
+    prompt = prompt_template.format(target_words=target_words, document=doc)
     resp = client.generate(
         model=model_tag,
         prompt=prompt,
@@ -139,7 +145,7 @@ def summarize_doc(
 
     txt_path.write_text(text)
     meta_path.write_text(json.dumps({
-        "prompt_version": PROMPT_VERSION,
+        "prompt_version": prompt_version,
         "model_tag": model_tag,
         "doc_sha1": _doc_sha1(doc),
         "target_words": target_words,
@@ -168,6 +174,8 @@ def summarize_corpus(
     temperature: float = 0.0,
     seed: int = 0,
     show_progress: bool = True,
+    prompt_template: str = DEFAULT_SUMMARY_PROMPT,
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
 ) -> list[SummaryResult]:
     """Summarize a list of documents. Cache hits are O(disk read); misses call the LLM."""
     import ollama
@@ -196,6 +204,8 @@ def summarize_corpus(
             temperature=temperature,
             seed=seed,
             client=client,
+            prompt_template=prompt_template,
+            prompt_version=prompt_version,
         )
         results.append(r)
         if r.cache_hit:

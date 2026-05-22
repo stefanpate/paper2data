@@ -28,7 +28,9 @@ from paper2data.llm_summaries import summarize_corpus
 
 log = logging.getLogger(__name__)
 
-CLASSIFY_PROMPT = """You are classifying a Usenet newsgroup post into exactly one of \
+# Fallback default — the canonical prompt lives in `conf/prompts/zero_shot_v1.yaml`
+# and is threaded through `run()` via cfg.prompts.classify.
+DEFAULT_CLASSIFY_PROMPT = """You are classifying a Usenet newsgroup post into exactly one of \
 {n_categories} categories.
 
 Categories:
@@ -68,8 +70,9 @@ def classify_one(
     num_ctx: int,
     temperature: float,
     seed: int,
+    prompt_template: str = DEFAULT_CLASSIFY_PROMPT,
 ) -> str | None:
-    prompt = CLASSIFY_PROMPT.format(
+    prompt = prompt_template.format(
         n_categories=n_categories,
         categories_block=categories_block,
         text=text,
@@ -125,6 +128,8 @@ def run(cfg: DictConfig) -> dict:
         num_ctx=cfg.llm.summary_num_ctx,
         temperature=cfg.llm.temperature,
         seed=cfg.llm.seed,
+        prompt_template=cfg.prompts.summary,
+        prompt_version=cfg.prompts.version,
     )
     texts = [s.text for s in summaries]
     mean_summary_words = float(np.mean([len(t.split()) for t in texts]))
@@ -163,6 +168,7 @@ def run(cfg: DictConfig) -> dict:
             num_ctx=cfg.llm.classify_num_ctx,
             temperature=cfg.llm.temperature,
             seed=cfg.llm.seed,
+            prompt_template=cfg.prompts.classify,
         )
         if cat is None:
             n_unparseable += 1
