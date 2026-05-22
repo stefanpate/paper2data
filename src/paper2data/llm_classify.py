@@ -59,6 +59,10 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
     }
 
 
+def _next_pow2(n: int) -> int:
+    return 1 << max(0, n - 1).bit_length()
+
+
 def classify_one(
     text: str,
     *,
@@ -73,6 +77,9 @@ def classify_one(
     seed: int,
     prompt_template: str = DEFAULT_CLASSIFY_PROMPT,
     examples_block: str = "",
+    tokenizer=None,
+    max_num_ctx: int | None = None,
+    response_headroom: int = 64,
 ) -> str | None:
     fields = {
         "n_categories": n_categories,
@@ -82,6 +89,26 @@ def classify_one(
     if "{examples_block}" in prompt_template:
         fields["examples_block"] = examples_block
     prompt = prompt_template.format(**fields)
+
+    if tokenizer is not None:
+        prompt_tokens = len(tokenizer.encode(prompt, add_special_tokens=False))
+        required = prompt_tokens + response_headroom
+        if required > num_ctx:
+            ceiling = max_num_ctx if max_num_ctx is not None else required
+            grown = min(_next_pow2(required), ceiling)
+            if grown < required:
+                raise RuntimeError(
+                    f"classify prompt needs {required} tokens "
+                    f"({prompt_tokens} prompt + {response_headroom} headroom) "
+                    f"but max_classify_num_ctx={ceiling}. "
+                    f"Lower few_shot.n_per_category, lower fraction, or raise the ceiling."
+                )
+            log.warning(
+                "classify: prompt is %d tokens; growing num_ctx %d -> %d",
+                prompt_tokens, num_ctx, grown,
+            )
+            num_ctx = grown
+
     resp = client.chat(
         model=model_tag,
         messages=[{"role": "user", "content": prompt}],
@@ -176,6 +203,14 @@ def run(cfg: DictConfig) -> dict:
     categories_block = "\n".join(f"- {c}" for c in target_names)
     name_to_idx = {c: i for i, c in enumerate(target_names)}
 
+    tokenizer = None
+    hf_tok = getattr(cfg.llm, "hf_tokenizer", None)
+    if hf_tok:
+        from transformers import AutoTokenizer
+        log.info("classify: loading tokenizer %s for prompt-length checks", hf_tok)
+        tokenizer = AutoTokenizer.from_pretrained(hf_tok)
+    max_classify_num_ctx = int(getattr(cfg.llm, "max_classify_num_ctx", cfg.llm.classify_num_ctx))
+
     log.info("Classifying %d docs with %s", len(texts), cfg.llm.tag)
     preds: list[int] = []
     n_unparseable = 0
@@ -201,6 +236,8 @@ def run(cfg: DictConfig) -> dict:
             seed=cfg.llm.seed,
             prompt_template=cfg.prompts.classify,
             examples_block=examples_block,
+            tokenizer=tokenizer,
+            max_num_ctx=max_classify_num_ctx,
         )
         if cat is None:
             n_unparseable += 1

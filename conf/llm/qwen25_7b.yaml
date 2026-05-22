@@ -3,7 +3,15 @@ tag: qwen2.5:7b-instruct
 # Summarization needs to fit the full doc; long-tail 20NG posts can be ~10K tokens.
 summary_num_ctx: 16384
 # Classification operates on summaries (or short raw docs) + a ~300-token prompt.
-# Keeping this small materially speeds up CPU inference.
-classify_num_ctx: 2048
+# Sized to fit few-shot prompts up to n_per_category=10 with the qwen2.5 tokenizer
+# (n=10 maxes at ~17.7K tokens at fraction=0.25 on 20NG); see plan in
+# notebooks/few_shot_inspection.ipynb. Qwen2.5-7B-Instruct ceiling is 131072.
+classify_num_ctx: 16384
+# Hard ceiling for the auto-grow logic in llm_classify.classify_one. Set to the
+# model's native max so we never silently truncate; if a prompt needs more we
+# raise instead of clipping.
+max_classify_num_ctx: 131072
+# HF Hub tokenizer id used to measure prompt length before sending to Ollama.
+hf_tokenizer: Qwen/Qwen2.5-7B-Instruct
 temperature: 0.0
 seed: 0
