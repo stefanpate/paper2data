@@ -1,1 +1,0 @@
-NEC AC100 part from Multisync I monitor; three-lead package, labeled CR691; pins connected as reference voltage, capacitor negative lead, and bridge rectifier negative side. Seeking identification or replacement.

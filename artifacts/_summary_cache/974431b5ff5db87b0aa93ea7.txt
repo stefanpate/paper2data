@@ -1,1 +1,0 @@
-Brad inquires about Fresco's release status, availability compared to InterViews and Motif compatibility, seeking information on code portability between these technologies.

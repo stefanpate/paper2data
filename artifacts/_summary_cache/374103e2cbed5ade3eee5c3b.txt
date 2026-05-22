@@ -1,1 +1,0 @@
-Christine Chan seeks info on color display restrictions for DECstation, HP, Amiga, Apollo workstations and advice on displaying 16-bit images under X-windows.

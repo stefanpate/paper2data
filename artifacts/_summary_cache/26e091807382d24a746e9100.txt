@@ -1,1 +1,0 @@
-Seeking precise auto-tracing in Adobe Illustrator; current settings inadequate for edge accuracy.

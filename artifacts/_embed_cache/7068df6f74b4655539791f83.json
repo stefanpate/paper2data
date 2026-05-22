@@ -1,8 +1,0 @@
-{
-  "model_id": "BAAI/bge-small-en-v1.5",
-  "passage_prefix": "",
-  "normalize_embeddings": true,
-  "n_docs": 735,
-  "dim": 384,
-  "corpus_fingerprint": "baaabb06847c1ed9"
-}

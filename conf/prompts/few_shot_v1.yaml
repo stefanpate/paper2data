@@ -1,0 +1,38 @@
+# Few-shot variant of the summarize+classify prompts.
+#
+# `summary` is identical to zero_shot_v1 so summary cache entries are reused
+# (cache key includes `version`; keep both files' versions in sync if you
+# only edit the classify template, or bump just this file's version when you
+# edit the summary template independently).
+#
+# Required placeholders:
+#   summary:  {target_words}, {document}
+#   classify: {n_categories}, {categories_block}, {examples_block}, {text}
+
+name: few_shot_v1
+version: v1
+
+summary: |
+  You are summarizing a Usenet newsgroup post for a downstream classifier.
+  Produce a faithful summary in approximately {target_words} words. Preserve topical vocabulary (named entities, jargon, technical terms) — these are the strongest classification signal. Do not add commentary or preamble.
+
+  POST:
+  {document}
+
+  SUMMARY:
+
+classify: |
+  You are classifying a Usenet newsgroup post into exactly one of {n_categories} categories.
+
+  Categories:
+  {categories_block}
+
+  Here are labeled examples. Each example shows a POST followed by the RESPONSE JSON the classifier should emit:
+
+  {examples_block}
+  Now classify the following post in the same way.
+
+  POST:
+  {text}
+
+  Respond with JSON matching the schema.

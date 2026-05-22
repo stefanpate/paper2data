@@ -1,5 +1,0 @@
-[2026-05-20 15:29:04,356][paper2data.train][INFO] - Loading 20NG (subset=all)
-[2026-05-20 15:29:05,986][paper2data.train][INFO] - Loaded 18846 documents across 20 classes
-[2026-05-20 15:29:06,083][paper2data.train][INFO] - Param grid: {'tfidf__ngram_range': [(1, 1), (1, 2)], 'tfidf__min_df': [2, 5], 'clf__C': [0.1, 1.0, 10.0], 'clf__penalty': ['l2']}
-[2026-05-20 15:29:06,084][paper2data.train][INFO] - Running nested CV: 5 outer x 3 inner folds
-[2026-05-20 15:29:06,088][paper2data.train][INFO] - Outer fold 1/5

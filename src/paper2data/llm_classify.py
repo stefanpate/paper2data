@@ -24,6 +24,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 
 from paper2data.data import load_twenty_newsgroups
+from paper2data.few_shot import build_examples, render_examples_block
 from paper2data.llm_summaries import summarize_corpus
 
 log = logging.getLogger(__name__)
@@ -71,12 +72,16 @@ def classify_one(
     temperature: float,
     seed: int,
     prompt_template: str = DEFAULT_CLASSIFY_PROMPT,
+    examples_block: str = "",
 ) -> str | None:
-    prompt = prompt_template.format(
-        n_categories=n_categories,
-        categories_block=categories_block,
-        text=text,
-    )
+    fields = {
+        "n_categories": n_categories,
+        "categories_block": categories_block,
+        "text": text,
+    }
+    if "{examples_block}" in prompt_template:
+        fields["examples_block"] = examples_block
+    prompt = prompt_template.format(**fields)
     resp = client.chat(
         model=model_tag,
         messages=[{"role": "user", "content": prompt}],
@@ -107,7 +112,7 @@ def run(cfg: DictConfig) -> dict:
     target_names = ds.target_names
 
     # Same split as src/paper2data/train.py — must stay bit-identical.
-    _, X_test, _, y_test = train_test_split(
+    X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=cfg.test_size, stratify=y, random_state=cfg.seed
     )
     log.info("Held-out test set: %d docs, %d classes", len(X_test), len(target_names))
@@ -133,6 +138,32 @@ def run(cfg: DictConfig) -> dict:
     )
     texts = [s.text for s in summaries]
     mean_summary_words = float(np.mean([len(t.split()) for t in texts]))
+
+    # --- Build few-shot examples (if requested) ----------------------------
+    n_per_cat = int(cfg.few_shot.n_per_category)
+    examples = []
+    examples_block = ""
+    if n_per_cat > 0:
+        examples = build_examples(
+            X_train, y_train, list(target_names),
+            n_per_category=n_per_cat,
+            fraction=float(cfg.fraction),
+            model_tag=cfg.llm.tag,
+            summary_cache_dir=cfg.summary_cache_dir,
+            fewshot_cache_dir=cfg.fewshot_cache_dir,
+            num_ctx=cfg.llm.summary_num_ctx,
+            temperature=cfg.llm.temperature,
+            seed=cfg.llm.seed,
+            prompt_template=cfg.prompts.summary,
+            prompt_version=cfg.prompts.version,
+        )
+        examples_block = render_examples_block(examples)
+        if "{examples_block}" not in cfg.prompts.classify:
+            log.warning(
+                "few_shot.n_per_category=%d but prompts.%s has no "
+                "{examples_block} placeholder — examples will be discarded.",
+                n_per_cat, cfg.prompts.name,
+            )
 
     # --- Classify ----------------------------------------------------------
     import os
@@ -169,6 +200,7 @@ def run(cfg: DictConfig) -> dict:
             temperature=cfg.llm.temperature,
             seed=cfg.llm.seed,
             prompt_template=cfg.prompts.classify,
+            examples_block=examples_block,
         )
         if cat is None:
             n_unparseable += 1
@@ -190,13 +222,18 @@ def run(cfg: DictConfig) -> dict:
     # --- Persist (mirror existing artifact layout) -------------------------
     results = {
         "run_name": cfg.run_name,
-        "kind": "llm_zero_shot",
+        "kind": "llm_few_shot" if n_per_cat > 0 else "llm_zero_shot",
         "model": cfg.llm.name,
-        "featurizer": f"llm_summary_{cfg.fraction}",
+        "featurizer": f"llm_summary_{cfg.fraction}_n{n_per_cat}",
         "data": cfg.data.name,
         "n_test": int(len(X_test)),
         "n_classes": int(len(target_names)),
         "test": test_metrics,
+        "prompts": {"name": cfg.prompts.name, "version": cfg.prompts.version},
+        "few_shot": {
+            "n_per_category": n_per_cat,
+            "example_train_indices": [e.train_idx for e in examples],
+        },
         "llm": {
             "tag": cfg.llm.tag,
             "fraction": float(cfg.fraction),

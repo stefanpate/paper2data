@@ -17,9 +17,15 @@ fractions: [0.1, 0.25, 0.5, 0.75, 1.0]
 # Optional smoke-test cap on number of docs (null = all).
 smoke: null
 
-summary_cache_dir: ${hydra:runtime.cwd}/artifacts/_summary_cache
+# Few-shot in-context learning. 0 = zero-shot (matches prompts/zero_shot_v1.yaml).
+# When >0, use prompts=few_shot_v1 so the {examples_block} placeholder is honored.
+few_shot:
+  n_per_category: 0
 
-run_name: ${llm.name}_summary${fraction}_${data.name}
+summary_cache_dir: ${hydra:runtime.cwd}/artifacts/_summary_cache
+fewshot_cache_dir: ${hydra:runtime.cwd}/artifacts/_fewshot_cache
+
+run_name: ${llm.name}_${prompts.name}_n${few_shot.n_per_category}_summary${fraction}_${data.name}
 artifacts_dir: ${hydra:runtime.cwd}/artifacts/${run_name}
 
 hydra:

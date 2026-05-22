@@ -5,3 +5,12 @@ __pycache__/
 artifacts/random_forest_bge_small_20ng/best_model.joblib
 .vscode
 
+# Caches — regeneratable from code; not worth tracking.
+artifacts/_embed_cache/
+artifacts/_summary_cache/
+artifacts/_fewshot_cache/
+
+# HPC / Hydra run logs.
+logs/
+multirun/
+*.log

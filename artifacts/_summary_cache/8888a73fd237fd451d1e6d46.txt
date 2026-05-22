@@ -1,1 +1,0 @@
-Adobe Illustrator fails to trace edges accurately causing unusable results needed exact tracing not approximation suggestions welcome.
