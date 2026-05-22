@@ -25,6 +25,6 @@ hydra:
   run:
     dir: ${artifacts_dir}/hydra
   sweep:
-    dir: ${hydra:runtime.cwd}/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
   job:
     chdir: false
