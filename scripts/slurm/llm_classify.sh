@@ -37,4 +37,12 @@ echo "[llm_classify] node=$SLURMD_NODENAME gpu=$CUDA_VISIBLE_DEVICES"
 echo "[llm_classify] OLLAMA_HOST=$OLLAMA_HOST tag=$OLLAMA_MODEL_TAG"
 echo "[llm_classify] args: $*"
 
+echo "[llm_classify] health check: GET /api/tags"
+curl -fsS "http://${OLLAMA_HOST}/api/tags" || {
+  echo "[llm_classify] FATAL: ollama server not reachable at $OLLAMA_HOST"
+  echo "[llm_classify] --- ollama server log tail ---"
+  tail -n 50 "${SLURM_SUBMIT_DIR:-.}/ollama-${SLURM_JOB_ID:-local}.log" || true
+  exit 1
+}
+
 uv run python scripts/llm_classify.py "$@"

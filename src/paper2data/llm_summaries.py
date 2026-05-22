@@ -11,6 +11,7 @@ import hashlib
 import json
 import logging
 import math
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -122,7 +123,7 @@ def summarize_doc(
 
     if client is None:
         import ollama
-        client = ollama.Client()
+        client = ollama.Client(host=os.environ.get("OLLAMA_HOST"))
 
     prompt = SUMMARY_PROMPT.format(target_words=target_words, document=doc)
     resp = client.generate(
@@ -170,7 +171,9 @@ def summarize_corpus(
 ) -> list[SummaryResult]:
     """Summarize a list of documents. Cache hits are O(disk read); misses call the LLM."""
     import ollama
-    client = ollama.Client()
+    host = os.environ.get("OLLAMA_HOST")
+    log.info("summarize_corpus: ollama host=%r", host)
+    client = ollama.Client(host=host)
 
     iterator = enumerate(docs)
     if show_progress:

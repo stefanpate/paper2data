@@ -130,8 +130,11 @@ def run(cfg: DictConfig) -> dict:
     mean_summary_words = float(np.mean([len(t.split()) for t in texts]))
 
     # --- Classify ----------------------------------------------------------
+    import os
     import ollama
-    client = ollama.Client()
+    host = os.environ.get("OLLAMA_HOST")
+    log.info("classify: ollama host=%r", host)
+    client = ollama.Client(host=host)
     classification_cls = _build_classification_model(target_names)
     schema = classification_cls.model_json_schema()
     categories_block = "\n".join(f"- {c}" for c in target_names)
