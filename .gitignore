@@ -3,6 +3,10 @@
 __pycache__/
 *.pyc
 artifacts/random_forest_bge_small_20ng/best_model.joblib
+artifacts/random_forest_tfidf_20ng_tf0.25/best_model.joblib
+artifacts/random_forest_tfidf_20ng_tf0.1/best_model.joblib
+artifacts/nb_tfidf_20ng/best_model.joblib
+artifacts/complement_nb_tfidf_20ng/best_model.joblib
 .vscode
 
 # Caches — regeneratable from code; not worth tracking.

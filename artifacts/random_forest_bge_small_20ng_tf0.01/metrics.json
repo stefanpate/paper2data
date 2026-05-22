@@ -1,0 +1,108 @@
+{
+  "run_name": "random_forest_bge_small_20ng_tf0.01",
+  "model": "random_forest",
+  "featurizer": "bge_small",
+  "data": "20ng",
+  "n_train": 150,
+  "n_test": 3770,
+  "train_fraction": 0.01,
+  "n_classes": 20,
+  "best_params": {
+    "clf__max_features": "sqrt",
+    "clf__min_samples_leaf": 1,
+    "clf__n_estimators": 200
+  },
+  "best_inner_score": 0.42367724867724865,
+  "nested_cv": {
+    "folds": [
+      {
+        "fold": 0,
+        "best_params": {
+          "clf__max_features": "log2",
+          "clf__min_samples_leaf": 5,
+          "clf__n_estimators": 200
+        },
+        "best_inner_score": 0.40746031746031747,
+        "accuracy": 0.5,
+        "f1_macro": 0.4116666666666666,
+        "f1_weighted": 0.44111111111111106
+      },
+      {
+        "fold": 1,
+        "best_params": {
+          "clf__max_features": "sqrt",
+          "clf__min_samples_leaf": 5,
+          "clf__n_estimators": 200
+        },
+        "best_inner_score": 0.43812169312169313,
+        "accuracy": 0.4,
+        "f1_macro": 0.36666666666666664,
+        "f1_weighted": 0.3555555555555555
+      },
+      {
+        "fold": 2,
+        "best_params": {
+          "clf__max_features": "sqrt",
+          "clf__min_samples_leaf": 1,
+          "clf__n_estimators": 200
+        },
+        "best_inner_score": 0.370515873015873,
+        "accuracy": 0.5333333333333333,
+        "f1_macro": 0.4035714285714286,
+        "f1_weighted": 0.4658730158730159
+      },
+      {
+        "fold": 3,
+        "best_params": {
+          "clf__max_features": "log2",
+          "clf__min_samples_leaf": 1,
+          "clf__n_estimators": 200
+        },
+        "best_inner_score": 0.3955026455026454,
+        "accuracy": 0.43333333333333335,
+        "f1_macro": 0.3433333333333334,
+        "f1_weighted": 0.3466666666666667
+      },
+      {
+        "fold": 4,
+        "best_params": {
+          "clf__max_features": "log2",
+          "clf__min_samples_leaf": 1,
+          "clf__n_estimators": 200
+        },
+        "best_inner_score": 0.4066269841269842,
+        "accuracy": 0.4666666666666667,
+        "f1_macro": 0.34523809523809523,
+        "f1_weighted": 0.3714285714285714
+      }
+    ],
+    "summary": {
+      "accuracy": {
+        "mean": 0.4666666666666667,
+        "std": 0.04714045207910316
+      },
+      "f1_macro": {
+        "mean": 0.3740952380952381,
+        "std": 0.028686830434239523
+      },
+      "f1_weighted": {
+        "mean": 0.3961269841269841,
+        "std": 0.04814655965749902
+      }
+    }
+  },
+  "test": {
+    "accuracy": 0.5140583554376658,
+    "f1_macro": 0.48263911697340117,
+    "f1_weighted": 0.49507197802289604
+  },
+  "embedding": {
+    "model_id": "BAAI/bge-small-en-v1.5",
+    "dim": 384,
+    "train_cache_key": "33854c6420be1ec278bdcf7d",
+    "test_cache_key": "ca1eb8d6060325174f9d1770",
+    "train_cache_hit": true,
+    "test_cache_hit": true,
+    "encode_seconds": 0.002815246996760834
+  }
+}

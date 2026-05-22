@@ -66,6 +66,23 @@ def run(cfg: DictConfig) -> dict:
         X, y, test_size=cfg.test_size, stratify=y, random_state=cfg.seed
     )
 
+    train_fraction = float(cfg.get("train_fraction", 1.0))
+    if not 0.0 < train_fraction <= 1.0:
+        raise ValueError(f"train_fraction must be in (0, 1], got {train_fraction}")
+    if train_fraction < 1.0:
+        n_full = len(X_train)
+        X_train, _, y_train, _ = train_test_split(
+            X_train,
+            y_train,
+            train_size=train_fraction,
+            stratify=y_train,
+            random_state=cfg.seed,
+        )
+        log.info(
+            "Subsampled training set to %d/%d docs (train_fraction=%.4f)",
+            len(X_train), n_full, train_fraction,
+        )
+
     # ---- Featurize ----------------------------------------------------------
     embed_info: dict | None = None
     precomputed = is_precomputed_featurizer(cfg.featurizer)
@@ -184,6 +201,7 @@ def run(cfg: DictConfig) -> dict:
         "data": cfg.data.name,
         "n_train": int(len(X_train)),
         "n_test": int(len(X_test)),
+        "train_fraction": train_fraction,
         "n_classes": int(len(ds.target_names)),
         "best_params": final_search.best_params_,
         "best_inner_score": float(final_search.best_score_),

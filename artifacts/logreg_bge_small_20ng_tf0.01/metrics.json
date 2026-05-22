@@ -1,0 +1,96 @@
+{
+  "run_name": "logreg_bge_small_20ng_tf0.01",
+  "model": "logreg",
+  "featurizer": "bge_small",
+  "data": "20ng",
+  "n_train": 150,
+  "n_test": 3770,
+  "train_fraction": 0.01,
+  "n_classes": 20,
+  "best_params": {
+    "clf__C": 10.0
+  },
+  "best_inner_score": 0.4689285714285714,
+  "nested_cv": {
+    "folds": [
+      {
+        "fold": 0,
+        "best_params": {
+          "clf__C": 10.0
+        },
+        "best_inner_score": 0.4803968253968254,
+        "accuracy": 0.5666666666666667,
+        "f1_macro": 0.475,
+        "f1_weighted": 0.4888888888888889
+      },
+      {
+        "fold": 1,
+        "best_params": {
+          "clf__C": 10.0
+        },
+        "best_inner_score": 0.5269047619047619,
+        "accuracy": 0.6333333333333333,
+        "f1_macro": 0.5316666666666666,
+        "f1_weighted": 0.5977777777777777
+      },
+      {
+        "fold": 2,
+        "best_params": {
+          "clf__C": 10.0
+        },
+        "best_inner_score": 0.40129629629629626,
+        "accuracy": 0.5333333333333333,
+        "f1_macro": 0.4833333333333333,
+        "f1_weighted": 0.5111111111111111
+      },
+      {
+        "fold": 3,
+        "best_params": {
+          "clf__C": 10.0
+        },
+        "best_inner_score": 0.446031746031746,
+        "accuracy": 0.5,
+        "f1_macro": 0.4133333333333333,
+        "f1_weighted": 0.44555555555555554
+      },
+      {
+        "fold": 4,
+        "best_params": {
+          "clf__C": 10.0
+        },
+        "best_inner_score": 0.4665873015873016,
+        "accuracy": 0.6333333333333333,
+        "f1_macro": 0.5399999999999999,
+        "f1_weighted": 0.5533333333333333
+      }
+    ],
+    "summary": {
+      "accuracy": {
+        "mean": 0.5733333333333334,
+        "std": 0.05333333333333332
+      },
+      "f1_macro": {
+        "mean": 0.4886666666666666,
+        "std": 0.045550948276505604
+      },
+      "f1_weighted": {
+        "mean": 0.5193333333333333,
+        "std": 0.052435027403115106
+      }
+    }
+  },
+  "test": {
+    "accuracy": 0.6042440318302388,
+    "f1_macro": 0.5817735987457638,
+    "f1_weighted": 0.5952469911469879
+  },
+  "embedding": {
+    "model_id": "BAAI/bge-small-en-v1.5",
+    "dim": 384,
+    "train_cache_key": "33854c6420be1ec278bdcf7d",
+    "test_cache_key": "ca1eb8d6060325174f9d1770",
+    "train_cache_hit": true,
+    "test_cache_hit": true,
+    "encode_seconds": 0.004677774999436224
+  }
+}

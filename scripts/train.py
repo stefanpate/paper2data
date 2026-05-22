@@ -17,7 +17,7 @@ from paper2data.train import run
 CONF_DIR = str((Path(__file__).resolve().parents[1] / "conf"))
 
 
-@hydra.main(version_base=None, config_path=CONF_DIR, config_name="config")
+@hydra.main(version_base=None, config_path=CONF_DIR, config_name="train")
 def main(cfg: DictConfig) -> None:
     run(cfg)
 

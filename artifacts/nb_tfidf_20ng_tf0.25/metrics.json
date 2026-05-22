@@ -1,0 +1,118 @@
+{
+  "run_name": "nb_tfidf_20ng_tf0.25",
+  "model": "nb",
+  "featurizer": "tfidf",
+  "data": "20ng",
+  "n_train": 3769,
+  "n_test": 3770,
+  "train_fraction": 0.25,
+  "n_classes": 20,
+  "best_params": {
+    "clf__alpha": 0.1,
+    "tfidf__min_df": 2,
+    "tfidf__ngram_range": [
+      1,
+      1
+    ]
+  },
+  "best_inner_score": 0.6250602108585709,
+  "nested_cv": {
+    "folds": [
+      {
+        "fold": 0,
+        "best_params": {
+          "clf__alpha": 0.1,
+          "tfidf__min_df": 2,
+          "tfidf__ngram_range": [
+            1,
+            1
+          ]
+        },
+        "best_inner_score": 0.6159007869929471,
+        "accuracy": 0.6684350132625995,
+        "f1_macro": 0.6391538932946955,
+        "f1_weighted": 0.654667612607057
+      },
+      {
+        "fold": 1,
+        "best_params": {
+          "clf__alpha": 0.1,
+          "tfidf__min_df": 2,
+          "tfidf__ngram_range": [
+            1,
+            1
+          ]
+        },
+        "best_inner_score": 0.620845212267405,
+        "accuracy": 0.656498673740053,
+        "f1_macro": 0.6339334499220917,
+        "f1_weighted": 0.6457886301563481
+      },
+      {
+        "fold": 2,
+        "best_params": {
+          "clf__alpha": 0.01,
+          "tfidf__min_df": 2,
+          "tfidf__ngram_range": [
+            1,
+            2
+          ]
+        },
+        "best_inner_score": 0.6051255825925396,
+        "accuracy": 0.6644562334217506,
+        "f1_macro": 0.6524497983325314,
+        "f1_weighted": 0.6610732638400207
+      },
+      {
+        "fold": 3,
+        "best_params": {
+          "clf__alpha": 0.1,
+          "tfidf__min_df": 2,
+          "tfidf__ngram_range": [
+            1,
+            1
+          ]
+        },
+        "best_inner_score": 0.6154507668172835,
+        "accuracy": 0.6644562334217506,
+        "f1_macro": 0.6485856217397453,
+        "f1_weighted": 0.6585477911040978
+      },
+      {
+        "fold": 4,
+        "best_params": {
+          "clf__alpha": 0.01,
+          "tfidf__min_df": 2,
+          "tfidf__ngram_range": [
+            1,
+            2
+          ]
+        },
+        "best_inner_score": 0.6176524217073996,
+        "accuracy": 0.6440903054448871,
+        "f1_macro": 0.634126109984805,
+        "f1_weighted": 0.6421796259175545
+      }
+    ],
+    "summary": {
+      "accuracy": {
+        "mean": 0.6595872918582082,
+        "std": 0.008664773600303252
+      },
+      "f1_macro": {
+        "mean": 0.6416497746547738,
+        "std": 0.007577903502106065
+      },
+      "f1_weighted": {
+        "mean": 0.6524513847250157,
+        "std": 0.0072981636550404514
+      }
+    }
+  },
+  "test": {
+    "accuracy": 0.7084880636604775,
+    "f1_macro": 0.6889279532694338,
+    "f1_weighted": 0.700768855382116
+  },
+  "embedding": null
+}

@@ -1,0 +1,57 @@
+data:
+  name: 20ng
+  subset: all
+  remove:
+  - headers
+  - footers
+  - quotes
+  categories: null
+featurizer:
+  name: tfidf
+  estimator:
+    _target_: sklearn.feature_extraction.text.TfidfVectorizer
+    lowercase: true
+    stop_words: english
+    ngram_range:
+    - 1
+    - 1
+    min_df: 2
+    max_df: 0.95
+    sublinear_tf: true
+  param_grid:
+    tfidf__ngram_range:
+    - - 1
+      - 1
+    - - 1
+      - 2
+    tfidf__min_df:
+    - 2
+    - 5
+model:
+  name: random_forest
+  estimator:
+    _target_: sklearn.ensemble.RandomForestClassifier
+    n_jobs: 1
+    random_state: 0
+  param_grid:
+    clf__n_estimators:
+    - 200
+    clf__max_features:
+    - sqrt
+    - log2
+    clf__min_samples_leaf:
+    - 1
+    - 5
+cv:
+  name: nested
+  outer_splits: 5
+  inner_splits: 3
+  shuffle: true
+  scoring: f1_macro
+  refit_inner: true
+run_name: ${model.name}_${featurizer.name}_${data.name}_tf${train_fraction}
+seed: 42
+n_jobs: -1
+test_size: 0.2
+train_fraction: 0.25
+artifacts_dir: ${hydra:runtime.cwd}/artifacts/${run_name}
