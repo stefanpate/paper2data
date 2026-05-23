@@ -1,0 +1,77 @@
+data:
+  name: 20ng
+  subset: all
+  remove:
+  - headers
+  - footers
+  - quotes
+  categories: null
+llm:
+  name: qwen25_7b
+  tag: qwen2.5:7b-instruct
+  summary_num_ctx: 16384
+  classify_num_ctx: 16384
+  max_classify_num_ctx: 131072
+  hf_tokenizer: Qwen/Qwen2.5-7B-Instruct
+  temperature: 0.0
+  seed: 0
+prompts:
+  name: few_shot_v1
+  version: v1
+  summary: 'You are summarizing a Usenet newsgroup post for a downstream classifier.
+
+    Produce a faithful summary in approximately {target_words} words. Preserve topical
+    vocabulary (named entities, jargon, technical terms) — these are the strongest
+    classification signal. Do not add commentary or preamble.
+
+
+    POST:
+
+    {document}
+
+
+    SUMMARY:
+
+    '
+  classify: 'You are classifying a Usenet newsgroup post into exactly one of {n_categories}
+    categories.
+
+
+    Categories:
+
+    {categories_block}
+
+
+    Here are labeled examples. Each example shows a POST followed by the RESPONSE
+    JSON the classifier should emit:
+
+
+    {examples_block}
+
+    Now classify the following post in the same way.
+
+
+    POST:
+
+    {text}
+
+
+    Respond with JSON matching the schema.
+
+    '
+seed: 42
+test_size: 0.2
+fraction: 0.5
+fractions:
+- 0.1
+- 0.25
+- 0.5
+- 0.75
+- 1.0
+smoke: null
+few_shot:
+  n_per_category: 1
+summary_cache_dir: ${hydra:runtime.cwd}/artifacts/_summary_cache
+fewshot_cache_dir: ${hydra:runtime.cwd}/artifacts/_fewshot_cache
+run_name: ${llm.name}_${prompts.name}_n${few_shot.n_per_category}_summary${fraction}_${data.name}
+artifacts_dir: ${hydra:runtime.cwd}/artifacts/${run_name}

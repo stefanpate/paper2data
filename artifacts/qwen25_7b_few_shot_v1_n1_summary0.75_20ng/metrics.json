@@ -1,0 +1,50 @@
+{
+  "run_name": "qwen25_7b_few_shot_v1_n1_summary0.75_20ng",
+  "kind": "llm_few_shot",
+  "model": "qwen25_7b",
+  "featurizer": "llm_summary_0.75_n1",
+  "data": "20ng",
+  "n_test": 3770,
+  "n_classes": 20,
+  "test": {
+    "accuracy": 0.516445623342175,
+    "f1_macro": 0.5173299442306105,
+    "f1_weighted": 0.5279158477502284
+  },
+  "prompts": {
+    "name": "few_shot_v1",
+    "version": "v1"
+  },
+  "few_shot": {
+    "n_per_category": 1,
+    "example_train_indices": [
+      13125,
+      9827,
+      7847,
+      3790,
+      4785,
+      494,
+      1289,
+      298,
+      2558,
+      11791,
+      9785,
+      13894,
+      8143,
+      8968,
+      14721,
+      10844,
+      9590,
+      8131,
+      8503,
+      13987
+    ]
+  },
+  "llm": {
+    "tag": "qwen2.5:7b-instruct",
+    "fraction": 0.75,
+    "n_unparseable": 0,
+    "mean_summary_words": 84.96392572944298,
+    "elapsed_s": 968.6150963789987
+  }
+}
