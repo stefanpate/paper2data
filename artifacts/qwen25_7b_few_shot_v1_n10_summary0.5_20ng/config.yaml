@@ -61,7 +61,7 @@ prompts:
     '
 seed: 42
 test_size: 0.2
-fraction: 1.0
+fraction: 0.5
 fractions:
 - 0.1
 - 0.25
@@ -70,7 +70,7 @@ fractions:
 - 1.0
 smoke: null
 few_shot:
-  n_per_category: 4
+  n_per_category: 10
 summary_cache_dir: ${hydra:runtime.cwd}/artifacts/_summary_cache
 fewshot_cache_dir: ${hydra:runtime.cwd}/artifacts/_fewshot_cache
 run_name: ${llm.name}_${prompts.name}_n${few_shot.n_per_category}_summary${fraction}_${data.name}
