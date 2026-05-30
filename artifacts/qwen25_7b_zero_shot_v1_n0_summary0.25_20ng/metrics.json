@@ -19,3 +19,24 @@
     "elapsed_s": 984.9137960709631
   }
 }
+{
+  "run_name": "qwen25_7b_summary0.25_20ng",
+  "kind": "llm_zero_shot",
+  "model": "qwen25_7b",
+  "featurizer": "llm_summary_0.25",
+  "data": "20ng",
+  "n_test": 3770,
+  "n_classes": 20,
+  "test": {
+    "accuracy": 0.476657824933687,
+    "f1_macro": 0.4649880101292986,
+    "f1_weighted": 0.47488742247451915
+  },
+  "llm": {
+    "tag": "qwen2.5:7b-instruct",
+    "fraction": 0.25,
+    "n_unparseable": 0,
+    "mean_summary_words": 24.93315649867374,
+    "elapsed_s": 984.9137960709631
+  }
+}

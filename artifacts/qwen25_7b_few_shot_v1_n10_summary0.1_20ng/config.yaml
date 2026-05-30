@@ -16,7 +16,7 @@ llm:
   temperature: 0.0
   seed: 0
 prompts:
-  name: zero_shot_v1
+  name: few_shot_v1
   version: v1
   summary: 'You are summarizing a Usenet newsgroup post for a downstream classifier.
 
@@ -42,17 +42,26 @@ prompts:
     {categories_block}
 
 
+    Here are labeled examples. Each example shows a POST followed by the RESPONSE
+    JSON the classifier should emit:
+
+
+    {examples_block}
+
+    Now classify the following post in the same way.
+
+
     POST:
 
     {text}
 
 
-    Choose the single best category. Respond with JSON matching the schema.
+    Respond with JSON matching the schema.
 
     '
 seed: 42
 test_size: 0.2
-fraction: 0.75
+fraction: 0.1
 fractions:
 - 0.1
 - 0.25
@@ -61,7 +70,7 @@ fractions:
 - 1.0
 smoke: null
 few_shot:
-  n_per_category: 0
+  n_per_category: 10
 summary_cache_dir: ${hydra:runtime.cwd}/artifacts/_summary_cache
 fewshot_cache_dir: ${hydra:runtime.cwd}/artifacts/_fewshot_cache
 run_name: ${llm.name}_${prompts.name}_n${few_shot.n_per_category}_summary${fraction}_${data.name}

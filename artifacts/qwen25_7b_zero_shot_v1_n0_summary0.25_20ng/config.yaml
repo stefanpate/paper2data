@@ -10,7 +10,9 @@ llm:
   name: qwen25_7b
   tag: qwen2.5:7b-instruct
   summary_num_ctx: 16384
-  classify_num_ctx: 2048
+  classify_num_ctx: 16384
+  max_classify_num_ctx: 131072
+  hf_tokenizer: Qwen/Qwen2.5-7B-Instruct
   temperature: 0.0
   seed: 0
 prompts:
