@@ -73,6 +73,30 @@ def target_words_for(doc: str, fraction: float) -> int:
     return max(8, math.ceil(fraction * _doc_words(doc)))
 
 
+def _summary_max_tokens(target_words: int) -> int:
+    """Output-token budget for a summary of ~target_words (API backend needs it)."""
+    return max(64, int(target_words * 2) + 64)
+
+
+def _write_summary_cache(
+    txt_path: Path, meta_path: Path, text: str, *,
+    prompt_version: str, model_tag: str, doc_sha1: str,
+    target_words: int, source_words: int, fraction: float,
+    temperature: float, seed: int,
+) -> None:
+    txt_path.write_text(text)
+    meta_path.write_text(json.dumps({
+        "prompt_version": prompt_version,
+        "model_tag": model_tag,
+        "doc_sha1": doc_sha1,
+        "target_words": target_words,
+        "source_words": source_words,
+        "fraction": fraction,
+        "temperature": temperature,
+        "seed": seed,
+    }, indent=2))
+
+
 def summarize_doc(
     doc: str,
     *,
@@ -128,8 +152,9 @@ def summarize_doc(
         )
 
     if client is None:
+        from paper2data.llm_providers import OllamaProvider
         import ollama
-        client = ollama.Client(host=os.environ.get("OLLAMA_HOST"))
+        client = OllamaProvider(ollama.Client(host=os.environ.get("OLLAMA_HOST")))
 
     prompt = prompt_template.format(target_words=target_words, document=doc)
     resp = client.generate(
@@ -140,20 +165,17 @@ def summarize_doc(
             "num_ctx": num_ctx,
             "seed": seed,
         },
+        max_tokens=_summary_max_tokens(target_words),
     )
     text = resp["response"].strip() if isinstance(resp, dict) else resp.response.strip()
 
-    txt_path.write_text(text)
-    meta_path.write_text(json.dumps({
-        "prompt_version": prompt_version,
-        "model_tag": model_tag,
-        "doc_sha1": _doc_sha1(doc),
-        "target_words": target_words,
-        "source_words": source_words,
-        "fraction": fraction,
-        "temperature": temperature,
-        "seed": seed,
-    }, indent=2))
+    _write_summary_cache(
+        txt_path, meta_path, text,
+        prompt_version=prompt_version, model_tag=model_tag,
+        doc_sha1=_doc_sha1(doc), target_words=target_words,
+        source_words=source_words, fraction=fraction,
+        temperature=temperature, seed=seed,
+    )
 
     return SummaryResult(
         text=text,
@@ -176,43 +198,169 @@ def summarize_corpus(
     show_progress: bool = True,
     prompt_template: str = DEFAULT_SUMMARY_PROMPT,
     prompt_version: str = DEFAULT_PROMPT_VERSION,
+    client=None,
+    provider_cfg=None,
 ) -> list[SummaryResult]:
-    """Summarize a list of documents. Cache hits are O(disk read); misses call the LLM."""
-    import ollama
-    host = os.environ.get("OLLAMA_HOST")
-    log.info("summarize_corpus: ollama host=%r", host)
-    client = ollama.Client(host=host)
+    """Summarize a list of documents. Cache hits are O(disk read); misses call the LLM.
 
-    iterator = enumerate(docs)
+    `client` is an LLM provider (see paper2data.llm_providers). If omitted, one is
+    built from `provider_cfg` (an llm config node), falling back to a local Ollama
+    client for backward compatibility. Cache-misses are routed to the provider's
+    Batch API when it supports one, otherwise run serially or concurrently
+    according to `client.concurrency`.
+    """
+    if client is None:
+        if provider_cfg is not None:
+            from paper2data.llm_providers import make_provider
+            client = make_provider(provider_cfg)
+        else:
+            from paper2data.llm_providers import OllamaProvider
+            import ollama
+            host = os.environ.get("OLLAMA_HOST")
+            log.info("summarize_corpus: ollama host=%r", host)
+            client = OllamaProvider(ollama.Client(host=host))
+
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    # Pass 1: resolve every doc that needs no LLM call (raw sentinel or cache hit)
+    # and collect the rest as misses we still have to generate.
+    results: list[SummaryResult | None] = [None] * len(docs)
+    misses: list[int] = []
+    for i, doc in enumerate(docs):
+        source_words = _doc_words(doc)
+        if fraction >= 1.0:
+            results[i] = SummaryResult(doc, "raw", True, source_words, source_words)
+            continue
+        target_words = target_words_for(doc, fraction)
+        key = _cache_key(
+            model_tag=model_tag, doc_sha1=_doc_sha1(doc),
+            target_words=target_words, temperature=temperature,
+            seed=seed, prompt_version=prompt_version,
+        )
+        txt_path = cache_dir / f"{key}.txt"
+        if txt_path.exists():
+            results[i] = SummaryResult(
+                txt_path.read_text(), key, True, target_words, source_words
+            )
+        else:
+            misses.append(i)
+
+    t0 = time.perf_counter()
+    if misses and client.supports_batch():
+        _summarize_batch(
+            docs, misses, results,
+            fraction=fraction, model_tag=model_tag, cache_dir=cache_dir,
+            temperature=temperature, seed=seed,
+            prompt_template=prompt_template, prompt_version=prompt_version,
+            client=client,
+        )
+    elif misses:
+        _summarize_loop(
+            docs, misses, results,
+            fraction=fraction, model_tag=model_tag, cache_dir=cache_dir,
+            num_ctx=num_ctx, temperature=temperature, seed=seed,
+            prompt_template=prompt_template, prompt_version=prompt_version,
+            client=client, show_progress=show_progress,
+        )
+    elapsed = time.perf_counter() - t0
+
+    log.info(
+        "Summarized %d docs at fraction=%.2f (%d cache hits, %d misses) in %.1fs",
+        len(docs), fraction, len(docs) - len(misses), len(misses), elapsed,
+    )
+    return [r for r in results if r is not None]
+
+
+def _summarize_loop(docs, misses, results, *, fraction, model_tag, cache_dir,
+                    num_ctx, temperature, seed, prompt_template, prompt_version,
+                    client, show_progress) -> None:
+    """Run misses through summarize_doc, serially or concurrently per provider."""
+    def _one(i: int) -> tuple[int, SummaryResult]:
+        return i, summarize_doc(
+            docs[i], fraction=fraction, model_tag=model_tag, cache_dir=cache_dir,
+            num_ctx=num_ctx, temperature=temperature, seed=seed, client=client,
+            prompt_template=prompt_template, prompt_version=prompt_version,
+        )
+
+    concurrency = int(getattr(client, "concurrency", 1) or 1)
+    iterator = misses
     if show_progress:
         try:
             from tqdm import tqdm
-            iterator = tqdm(list(iterator), desc=f"summarize@{fraction}")
+            iterator = tqdm(misses, desc=f"summarize@{fraction}")
         except ImportError:
             pass
 
-    results: list[SummaryResult] = []
-    hits = 0
-    t0 = time.perf_counter()
-    for _, doc in iterator:
-        r = summarize_doc(
-            doc,
-            fraction=fraction,
-            model_tag=model_tag,
-            cache_dir=cache_dir,
-            num_ctx=num_ctx,
-            temperature=temperature,
-            seed=seed,
-            client=client,
-            prompt_template=prompt_template,
-            prompt_version=prompt_version,
+    if concurrency <= 1:
+        for i in iterator:
+            idx, r = _one(i)
+            results[idx] = r
+        return
+
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=concurrency) as ex:
+        for idx, r in ex.map(_one, iterator):
+            results[idx] = r
+
+
+def _summarize_batch(docs, misses, results, *, fraction, model_tag, cache_dir,
+                     temperature, seed, prompt_template, prompt_version,
+                     client) -> None:
+    """Submit all misses as one batch, then backfill the per-doc cache.
+
+    Identical documents (20NG has cross-posts/reposts) share a content-derived
+    cache key, so they are collapsed into a single batch request — batch
+    custom_ids must be unique, and one summary legitimately serves every doc that
+    hashes to that key. Each such doc is then backfilled from the shared result.
+    """
+    from paper2data.llm_providers import BatchItem
+    # key -> {"indices": [positions in docs], target_words, source_words, doc, prompt}
+    by_key: dict[str, dict] = {}
+    for i in misses:
+        doc = docs[i]
+        target_words = target_words_for(doc, fraction)
+        key = _cache_key(
+            model_tag=model_tag, doc_sha1=_doc_sha1(doc),
+            target_words=target_words, temperature=temperature,
+            seed=seed, prompt_version=prompt_version,
         )
-        results.append(r)
-        if r.cache_hit:
-            hits += 1
-    elapsed = time.perf_counter() - t0
-    log.info(
-        "Summarized %d docs at fraction=%.2f (%d cache hits, %d misses) in %.1fs",
-        len(docs), fraction, hits, len(docs) - hits, elapsed,
+        entry = by_key.get(key)
+        if entry is None:
+            by_key[key] = {
+                "indices": [i],
+                "target_words": target_words,
+                "source_words": _doc_words(doc),
+                "doc": doc,
+                "prompt": prompt_template.format(target_words=target_words, document=doc),
+            }
+        else:
+            entry["indices"].append(i)
+
+    items = [
+        BatchItem(custom_id=key, prompt=e["prompt"],
+                  max_tokens=_summary_max_tokens(e["target_words"]))
+        for key, e in by_key.items()
+    ]
+    out = client.generate_batch(
+        items, model=model_tag, options={"temperature": temperature},
     )
-    return results
+    cache_dir = Path(cache_dir)
+    for key, e in by_key.items():
+        if key not in out:
+            raise RuntimeError(
+                f"batch summary missing for custom_id={key} "
+                f"(docs {e['indices']}); some requests errored or expired."
+            )
+        text = out[key].strip()
+        _write_summary_cache(
+            cache_dir / f"{key}.txt", cache_dir / f"{key}.json", text,
+            prompt_version=prompt_version, model_tag=model_tag,
+            doc_sha1=_doc_sha1(e["doc"]), target_words=e["target_words"],
+            source_words=e["source_words"], fraction=fraction,
+            temperature=temperature, seed=seed,
+        )
+        for i in e["indices"]:
+            results[i] = SummaryResult(
+                text, key, False, e["target_words"], e["source_words"]
+            )

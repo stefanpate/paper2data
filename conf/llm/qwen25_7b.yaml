@@ -1,4 +1,5 @@
 name: qwen25_7b
+provider: ollama
 tag: qwen2.5:7b-instruct
 # Summarization needs to fit the full doc; long-tail 20NG posts can be ~10K tokens.
 summary_num_ctx: 16384

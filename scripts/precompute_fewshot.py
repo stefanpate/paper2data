@@ -61,11 +61,12 @@ def main(cfg: DictConfig) -> None:
             model_tag=cfg.llm.tag,
             summary_cache_dir=cfg.summary_cache_dir,
             fewshot_cache_dir=cfg.fewshot_cache_dir,
-            num_ctx=cfg.llm.summary_num_ctx,
+            num_ctx=int(getattr(cfg.llm, "summary_num_ctx", 16384)),
             temperature=cfg.llm.temperature,
             seed=cfg.llm.seed,
             prompt_template=cfg.prompts.summary,
             prompt_version=cfg.prompts.version,
+            provider_cfg=cfg.llm,
         )
 
     log.info("Done. Sidecars in: %s", cfg.fewshot_cache_dir)

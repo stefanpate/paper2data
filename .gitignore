@@ -14,6 +14,9 @@ artifacts/_embed_cache/
 artifacts/_summary_cache/
 artifacts/_fewshot_cache/
 
+# Claude per-sample prediction stores (data, not code).
+artifacts/_claude_eval/
+
 # HPC / Hydra run logs.
 logs/
 multirun/

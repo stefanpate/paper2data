@@ -19,6 +19,7 @@ dependencies = [
     "sentence-transformers>=3.0",
     "einops>=0.8",
     "ollama>=0.4",
+    "anthropic>=0.40",
     "pydantic>=2.8",
     "tqdm>=4.66",
 ]

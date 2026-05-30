@@ -29,6 +29,7 @@ needed beforehand. Pulled model blobs land in `$SCRATCH/ollama_models`
 | `precompute_summaries.sh` | GPU + ollama | Pre-generate LLM summaries of the **test** docs (`scripts/precompute_summaries.py`). |
 | `precompute_fewshot.sh` | GPU + ollama | Pre-generate few-shot example (summary, label) pairs from **train** docs (`scripts/precompute_fewshot.py`). |
 | `llm_classify.sh` | GPU + ollama | LLM classification — zero-shot or few-shot (`scripts/llm_classify.py`). |
+| `llm_classify_claude.sh` | CPU + Claude API | Same pipeline, but the summarizer/classifier is Claude (`llm=claude_sonnet`). No ollama server. |
 
 All extra args are forwarded to the python entrypoint, so hydra
 overrides and `-m` multirun work:
@@ -45,6 +46,44 @@ matching ollama tag so the right weights get pulled — e.g.:
 OLLAMA_MODEL_TAG=qwen2.5:3b-instruct \
   sbatch scripts/slurm/llm_classify.sh llm=qwen25_3b
 ```
+
+## Claude provider
+
+The same summarize+classify pipeline can run against Claude (`llm=claude_sonnet`)
+instead of a local ollama model, via the **Anthropic Messages API + Batch API**.
+Everything else (prompts, zero/few-shot, caches, metrics, the train/test split)
+is identical, and Claude summaries/results land in the **same**
+`artifacts/_summary_cache/` keyed by their own `model_tag`, so they never collide
+with qwen entries.
+
+Billing is pay-per-token against your Console credits (set `ANTHROPIC_API_KEY`).
+The Batch API gives a 50% discount but is async (≤24h turnaround). Classification
+uses forced tool use so the model is constrained to emit
+`{"category": "<one of the 20 names>"}`; summaries are plain text.
+
+```bash
+# Export your key first; don't hard-code it in the script.
+export ANTHROPIC_API_KEY=sk-ant-...
+
+sbatch scripts/slurm/llm_classify_claude.sh llm=claude_sonnet fraction=0.25
+sbatch scripts/slurm/llm_classify_claude.sh -m \
+    llm=claude_sonnet fraction=0.1,0.25,0.5,0.75,1.0
+```
+
+For a quick local check, set `use_batch=false` for synchronous per-doc calls
+(full price, immediate) instead of the async batch:
+
+```bash
+uv run python scripts/llm_classify.py llm=claude_sonnet use_batch=false +smoke=5 fraction=0.25
+```
+
+Notes / caveats:
+- **Batch latency:** batches are async (≤24h). Summaries are written to the disk
+  cache, so a re-run is instant; classification batches are not yet resumable
+  across runs (resubmitted on re-run — a follow-up TODO).
+- Claude ignores `seed`; with `temperature=0.0` outputs are near-deterministic and
+  the disk cache freezes the first result, so downstream metrics stay stable.
+- Token usage / estimated cost is recorded in `metrics.json` under `llm.usage`.
 
 ## Prompts and few-shot
 

@@ -1,0 +1,42 @@
+# Incremental, per-sample Claude evaluation on 20NG (batched Messages API).
+# See src/paper2data/claude_eval.py and notebooks/claude_eval.ipynb.
+#
+#   uv run python scripts/claude_eval.py test_per_category=2
+#   uv run python scripts/claude_eval.py test_per_category=5   # sends only +3/class
+#
+# Predictions accumulate in artifacts/_claude_eval/${run_name}/predictions.jsonl;
+# nothing is ever re-sent.
+defaults:
+  - data: twenty_ng
+  - llm: claude_sonnet
+  - prompts: zero_shot_v1
+  - _self_
+
+seed: 42
+test_size: 0.2
+
+# Per-doc summary length as a fraction of the document's word count.
+# 1.0 is a sentinel meaning "use the raw document" (no summarization call).
+fraction: 0.25
+
+# How many test docs PER CATEGORY to have evaluated. Increase between runs to
+# send more samples; selection is prefix-stable and the store is deduplicated by
+# test index, so previously evaluated docs are never re-sent.
+test_per_category: 2
+
+# Few-shot in-context examples (separate from the test sampling above).
+# When >0, use prompts=few_shot_v1 so the {examples_block} placeholder is honored.
+few_shot:
+  n_per_category: 0
+
+summary_cache_dir: ${hydra:runtime.cwd}/artifacts/_summary_cache
+fewshot_cache_dir: ${hydra:runtime.cwd}/artifacts/_fewshot_cache
+
+run_name: ${llm.name}_${prompts.name}_n${few_shot.n_per_category}_summary${fraction}_${data.name}
+store_dir: ${hydra:runtime.cwd}/artifacts/_claude_eval/${run_name}
+
+hydra:
+  run:
+    dir: ${store_dir}/hydra
+  job:
+    chdir: false

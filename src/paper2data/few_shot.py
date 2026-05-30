@@ -89,6 +89,7 @@ def build_examples(
     prompt_template: str = DEFAULT_SUMMARY_PROMPT,
     prompt_version: str = DEFAULT_PROMPT_VERSION,
     client=None,
+    provider_cfg=None,
 ) -> list[FewShotExample]:
     """Pick, summarize, and persist few-shot examples.
 
@@ -129,6 +130,8 @@ def build_examples(
         show_progress=False,
         prompt_template=prompt_template,
         prompt_version=prompt_version,
+        client=client,
+        provider_cfg=provider_cfg,
     )
 
     examples = [

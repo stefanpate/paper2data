@@ -63,6 +63,20 @@ def _next_pow2(n: int) -> int:
     return 1 << max(0, n - 1).bit_length()
 
 
+def _build_classify_prompt(
+    prompt_template: str, *, n_categories: int, categories_block: str,
+    text: str, examples_block: str = "",
+) -> str:
+    fields = {
+        "n_categories": n_categories,
+        "categories_block": categories_block,
+        "text": text,
+    }
+    if "{examples_block}" in prompt_template:
+        fields["examples_block"] = examples_block
+    return prompt_template.format(**fields)
+
+
 def classify_one(
     text: str,
     *,
@@ -81,14 +95,10 @@ def classify_one(
     max_num_ctx: int | None = None,
     response_headroom: int = 64,
 ) -> str | None:
-    fields = {
-        "n_categories": n_categories,
-        "categories_block": categories_block,
-        "text": text,
-    }
-    if "{examples_block}" in prompt_template:
-        fields["examples_block"] = examples_block
-    prompt = prompt_template.format(**fields)
+    prompt = _build_classify_prompt(
+        prompt_template, n_categories=n_categories,
+        categories_block=categories_block, text=text, examples_block=examples_block,
+    )
 
     if tokenizer is not None:
         prompt_tokens = len(tokenizer.encode(prompt, add_special_tokens=False))
@@ -114,6 +124,7 @@ def classify_one(
         messages=[{"role": "user", "content": prompt}],
         format=schema,
         options={"temperature": temperature, "num_ctx": num_ctx, "seed": seed},
+        max_tokens=_CLASSIFY_MAX_TOKENS,
     )
     content = resp["message"]["content"] if isinstance(resp, dict) else resp.message.content
     try:
@@ -121,6 +132,93 @@ def classify_one(
     except ValidationError:
         log.warning("Unparseable classification response: %r", content[:200])
         return None
+
+
+_CLASSIFY_MAX_TOKENS = 64
+
+
+def classify_corpus(
+    texts: list[str],
+    *,
+    client,
+    model_tag: str,
+    schema: dict,
+    classification_cls: type[BaseModel],
+    categories_block: str,
+    n_categories: int,
+    num_ctx: int,
+    temperature: float,
+    seed: int,
+    prompt_template: str = DEFAULT_CLASSIFY_PROMPT,
+    examples_block: str = "",
+    tokenizer=None,
+    max_num_ctx: int | None = None,
+    show_progress: bool = True,
+) -> list[str | None]:
+    """Classify many docs, routing to the provider's Batch API when available.
+
+    Returns one category name (or None for unparseable) per input, in order.
+    Non-batch providers loop `classify_one`, serially or concurrently per
+    `client.concurrency`.
+    """
+    n = len(texts)
+    preds: list[str | None] = [None] * n
+
+    if client.supports_batch():
+        from paper2data.llm_providers import BatchItem
+        items = []
+        for i, text in enumerate(texts):
+            prompt = _build_classify_prompt(
+                prompt_template, n_categories=n_categories,
+                categories_block=categories_block, text=text,
+                examples_block=examples_block,
+            )
+            items.append(BatchItem(
+                custom_id=f"doc{i}",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=_CLASSIFY_MAX_TOKENS,
+            ))
+        out = client.chat_batch(
+            items, model=model_tag, format=schema,
+            options={"temperature": temperature},
+        )
+        for i in range(n):
+            content = out.get(f"doc{i}")
+            if not content:
+                continue
+            try:
+                preds[i] = classification_cls.model_validate_json(content).category
+            except ValidationError:
+                log.warning("Unparseable classification response: %r", content[:200])
+        return preds
+
+    def _one(i: int) -> tuple[int, str | None]:
+        return i, classify_one(
+            texts[i], client=client, model_tag=model_tag, schema=schema,
+            classification_cls=classification_cls, categories_block=categories_block,
+            n_categories=n_categories, num_ctx=num_ctx, temperature=temperature,
+            seed=seed, prompt_template=prompt_template, examples_block=examples_block,
+            tokenizer=tokenizer, max_num_ctx=max_num_ctx,
+        )
+
+    concurrency = int(getattr(client, "concurrency", 1) or 1)
+    indices = range(n)
+    if show_progress:
+        try:
+            from tqdm import tqdm
+            indices = tqdm(list(indices), desc="classify")
+        except ImportError:
+            pass
+
+    if concurrency <= 1:
+        for i in indices:
+            _, preds[i] = _one(i)
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=concurrency) as ex:
+            for idx, cat in ex.map(_one, indices):
+                preds[idx] = cat
+    return preds
 
 
 def run(cfg: DictConfig) -> dict:
@@ -150,6 +248,13 @@ def run(cfg: DictConfig) -> dict:
         X_test = X_test[:n]
         y_test = y_test[:n]
 
+    # --- Provider ----------------------------------------------------------
+    from paper2data.llm_providers import make_provider
+    provider = str(getattr(cfg.llm, "provider", "ollama"))
+    log.info("LLM provider=%s tag=%s", provider, cfg.llm.tag)
+    client = make_provider(cfg.llm)
+    summary_num_ctx = int(getattr(cfg.llm, "summary_num_ctx", 16384))
+
     # --- Summarize ---------------------------------------------------------
     log.info("Summarizing test set at fraction=%.2f", cfg.fraction)
     summaries = summarize_corpus(
@@ -157,11 +262,12 @@ def run(cfg: DictConfig) -> dict:
         fraction=float(cfg.fraction),
         model_tag=cfg.llm.tag,
         cache_dir=cfg.summary_cache_dir,
-        num_ctx=cfg.llm.summary_num_ctx,
+        num_ctx=summary_num_ctx,
         temperature=cfg.llm.temperature,
         seed=cfg.llm.seed,
         prompt_template=cfg.prompts.summary,
         prompt_version=cfg.prompts.version,
+        client=client,
     )
     texts = [s.text for s in summaries]
     mean_summary_words = float(np.mean([len(t.split()) for t in texts]))
@@ -178,11 +284,12 @@ def run(cfg: DictConfig) -> dict:
             model_tag=cfg.llm.tag,
             summary_cache_dir=cfg.summary_cache_dir,
             fewshot_cache_dir=cfg.fewshot_cache_dir,
-            num_ctx=cfg.llm.summary_num_ctx,
+            num_ctx=summary_num_ctx,
             temperature=cfg.llm.temperature,
             seed=cfg.llm.seed,
             prompt_template=cfg.prompts.summary,
             prompt_version=cfg.prompts.version,
+            client=client,
         )
         examples_block = render_examples_block(examples)
         if "{examples_block}" not in cfg.prompts.classify:
@@ -193,59 +300,46 @@ def run(cfg: DictConfig) -> dict:
             )
 
     # --- Classify ----------------------------------------------------------
-    import os
-    import ollama
-    host = os.environ.get("OLLAMA_HOST")
-    log.info("classify: ollama host=%r", host)
-    client = ollama.Client(host=host)
     classification_cls = _build_classification_model(target_names)
     schema = classification_cls.model_json_schema()
     categories_block = "\n".join(f"- {c}" for c in target_names)
     name_to_idx = {c: i for i, c in enumerate(target_names)}
 
+    # The num_ctx auto-grow + tokenizer length check is Ollama-specific (Claude
+    # manages its own 200K/1M context). Only enable it for the Ollama provider.
     tokenizer = None
-    hf_tok = getattr(cfg.llm, "hf_tokenizer", None)
-    if hf_tok:
-        from transformers import AutoTokenizer
-        log.info("classify: loading tokenizer %s for prompt-length checks", hf_tok)
-        tokenizer = AutoTokenizer.from_pretrained(hf_tok)
-    max_classify_num_ctx = int(getattr(cfg.llm, "max_classify_num_ctx", cfg.llm.classify_num_ctx))
+    classify_num_ctx = int(getattr(cfg.llm, "classify_num_ctx", 16384))
+    max_classify_num_ctx = classify_num_ctx
+    if provider == "ollama":
+        hf_tok = getattr(cfg.llm, "hf_tokenizer", None)
+        if hf_tok:
+            from transformers import AutoTokenizer
+            log.info("classify: loading tokenizer %s for prompt-length checks", hf_tok)
+            tokenizer = AutoTokenizer.from_pretrained(hf_tok)
+        max_classify_num_ctx = int(getattr(cfg.llm, "max_classify_num_ctx", classify_num_ctx))
 
     log.info("Classifying %d docs with %s", len(texts), cfg.llm.tag)
-    preds: list[int] = []
-    n_unparseable = 0
     t0 = time.perf_counter()
-
-    try:
-        from tqdm import tqdm
-        iterator = tqdm(texts, desc="classify")
-    except ImportError:
-        iterator = texts
-
-    for text in iterator:
-        cat = classify_one(
-            text,
-            client=client,
-            model_tag=cfg.llm.tag,
-            schema=schema,
-            classification_cls=classification_cls,
-            categories_block=categories_block,
-            n_categories=len(target_names),
-            num_ctx=cfg.llm.classify_num_ctx,
-            temperature=cfg.llm.temperature,
-            seed=cfg.llm.seed,
-            prompt_template=cfg.prompts.classify,
-            examples_block=examples_block,
-            tokenizer=tokenizer,
-            max_num_ctx=max_classify_num_ctx,
-        )
-        if cat is None:
-            n_unparseable += 1
-            preds.append(-1)
-        else:
-            preds.append(name_to_idx[cat])
+    cats = classify_corpus(
+        texts,
+        client=client,
+        model_tag=cfg.llm.tag,
+        schema=schema,
+        classification_cls=classification_cls,
+        categories_block=categories_block,
+        n_categories=len(target_names),
+        num_ctx=classify_num_ctx,
+        temperature=cfg.llm.temperature,
+        seed=cfg.llm.seed,
+        prompt_template=cfg.prompts.classify,
+        examples_block=examples_block,
+        tokenizer=tokenizer,
+        max_num_ctx=max_classify_num_ctx,
+    )
     elapsed = time.perf_counter() - t0
 
+    preds = [name_to_idx[c] if c is not None else -1 for c in cats]
+    n_unparseable = sum(1 for c in cats if c is None)
     y_pred = np.asarray(preds)
     valid_mask = y_pred != -1
     if not valid_mask.all():
@@ -272,11 +366,13 @@ def run(cfg: DictConfig) -> dict:
             "example_train_indices": [e.train_idx for e in examples],
         },
         "llm": {
+            "provider": provider,
             "tag": cfg.llm.tag,
             "fraction": float(cfg.fraction),
             "n_unparseable": int(n_unparseable),
             "mean_summary_words": mean_summary_words,
             "elapsed_s": elapsed,
+            "usage": client.usage_summary(),
         },
     }
     (artifacts_dir / "metrics.json").write_text(json.dumps(results, indent=2, default=str))

@@ -56,11 +56,12 @@ def main(cfg: DictConfig) -> None:
             fraction=frac,
             model_tag=cfg.llm.tag,
             cache_dir=cfg.summary_cache_dir,
-            num_ctx=cfg.llm.summary_num_ctx,
+            num_ctx=int(getattr(cfg.llm, "summary_num_ctx", 16384)),
             temperature=cfg.llm.temperature,
             seed=cfg.llm.seed,
             prompt_template=cfg.prompts.summary,
             prompt_version=cfg.prompts.version,
+            provider_cfg=cfg.llm,
         )
 
     log.info("Done. Cache dir: %s", cfg.summary_cache_dir)

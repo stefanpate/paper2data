@@ -1,4 +1,5 @@
 name: phi35_mini
+provider: ollama
 tag: phi3.5:3.8b-mini-instruct
 summary_num_ctx: 16384
 classify_num_ctx: 2048
