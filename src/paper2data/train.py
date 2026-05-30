@@ -19,6 +19,7 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_sp
 
 from paper2data.data import load_twenty_newsgroups
 from paper2data.embeddings import embed_corpus
+from paper2data.few_shot import select_example_indices
 from paper2data.pipeline import build_param_grid, build_pipeline, is_precomputed_featurizer
 
 log = logging.getLogger(__name__)
@@ -66,21 +67,23 @@ def run(cfg: DictConfig) -> dict:
         X, y, test_size=cfg.test_size, stratify=y, random_state=cfg.seed
     )
 
-    train_fraction = float(cfg.get("train_fraction", 1.0))
-    if not 0.0 < train_fraction <= 1.0:
-        raise ValueError(f"train_fraction must be in (0, 1], got {train_fraction}")
-    if train_fraction < 1.0:
+    # Subsample to `n_per_category` training docs per class (stratified),
+    # mirroring the few-shot LLM runs so data-efficiency curves share an x-axis.
+    # `null`/<=0 means use all available training data.
+    n_per_category = cfg.get("n_per_category", None)
+    if n_per_category is not None:
+        n_per_category = int(n_per_category)
+        if n_per_category <= 0:
+            raise ValueError(
+                f"n_per_category must be a positive integer or null, got {n_per_category}"
+            )
         n_full = len(X_train)
-        X_train, _, y_train, _ = train_test_split(
-            X_train,
-            y_train,
-            train_size=train_fraction,
-            stratify=y_train,
-            random_state=cfg.seed,
-        )
+        idx = select_example_indices(y_train, n_per_category=n_per_category, seed=cfg.seed)
+        X_train = X_train[idx]
+        y_train = y_train[idx]
         log.info(
-            "Subsampled training set to %d/%d docs (train_fraction=%.4f)",
-            len(X_train), n_full, train_fraction,
+            "Subsampled training set to %d/%d docs (n_per_category=%d)",
+            len(X_train), n_full, n_per_category,
         )
 
     # ---- Featurize ----------------------------------------------------------
@@ -127,66 +130,37 @@ def run(cfg: DictConfig) -> dict:
     param_grid = build_param_grid(cfg.featurizer, cfg.model)
     log.info("Param grid: %s", param_grid)
 
-    inner_cv = StratifiedKFold(
-        n_splits=cfg.cv.inner_splits, shuffle=cfg.cv.shuffle, random_state=cfg.seed
-    )
-    outer_cv = StratifiedKFold(
-        n_splits=cfg.cv.outer_splits, shuffle=cfg.cv.shuffle, random_state=cfg.seed
+    cv = StratifiedKFold(
+        n_splits=cfg.cv.splits, shuffle=cfg.cv.shuffle, random_state=cfg.seed
     )
 
-    # ---- Nested CV on training data -----------------------------------------
-    # Outer loop: unbiased generalization estimate.
-    # Inner loop: HPO via GridSearchCV.
-    log.info("Running nested CV: %d outer x %d inner folds",
-             cfg.cv.outer_splits, cfg.cv.inner_splits)
-
-    fold_records: list[dict] = []
-    for fold_idx, (tr_idx, va_idx) in enumerate(outer_cv.split(X_train_feat, y_train)):
-        log.info("Outer fold %d/%d", fold_idx + 1, cfg.cv.outer_splits)
-        search = GridSearchCV(
-            estimator=pipeline,
-            param_grid=param_grid,
-            cv=inner_cv,
-            scoring=cfg.cv.scoring,
-            n_jobs=cfg.n_jobs,
-            refit=cfg.cv.refit_inner,
-        )
-        search.fit(X_train_feat[tr_idx], y_train[tr_idx])
-        y_va_pred = search.predict(X_train_feat[va_idx])
-        fold_metrics = _metrics(y_train[va_idx], y_va_pred)
-        fold_records.append({
-            "fold": fold_idx,
-            "best_params": search.best_params_,
-            "best_inner_score": float(search.best_score_),
-            **fold_metrics,
-        })
-        log.info("  best_params=%s  outer %s=%.4f",
-                 search.best_params_, cfg.cv.scoring,
-                 fold_metrics["f1_macro"])
-
-    nested_summary = {
-        metric: {
-            "mean": float(np.mean([r[metric] for r in fold_records])),
-            "std": float(np.std([r[metric] for r in fold_records])),
-        }
-        for metric in ("accuracy", "f1_macro", "f1_weighted")
-    }
-    log.info("Nested CV f1_macro: %.4f ± %.4f",
-             nested_summary["f1_macro"]["mean"],
-             nested_summary["f1_macro"]["std"])
-
-    # ---- Final HPO on full train, evaluate on held-out test -----------------
-    log.info("Refitting on full train with inner CV for final HPO")
-    final_search = GridSearchCV(
+    # ---- Hyperparameter selection via k-fold CV on train+val ----------------
+    # A single level of cross-validation splits train+val into `cfg.cv.splits`
+    # folds to score each grid config. The best config is then refit on all of
+    # train+val and evaluated once on the held-out test set. (No nested outer
+    # loop: the held-out test split already provides the final estimate.)
+    log.info("Grid search over %d-fold CV for HPO", cfg.cv.splits)
+    search = GridSearchCV(
         estimator=pipeline,
         param_grid=param_grid,
-        cv=inner_cv,
+        cv=cv,
         scoring=cfg.cv.scoring,
         n_jobs=cfg.n_jobs,
         refit=True,
     )
-    final_search.fit(X_train_feat, y_train)
-    best_model = final_search.best_estimator_
+    search.fit(X_train_feat, y_train)
+    best_idx = search.best_index_
+    cv_summary = {
+        "n_splits": int(cfg.cv.splits),
+        "scoring": cfg.cv.scoring,
+        "best_score_mean": float(search.cv_results_["mean_test_score"][best_idx]),
+        "best_score_std": float(search.cv_results_["std_test_score"][best_idx]),
+    }
+    log.info("CV %s of best config: %.4f ± %.4f",
+             cfg.cv.scoring, cv_summary["best_score_mean"], cv_summary["best_score_std"])
+
+    # ---- Evaluate best model on held-out test -------------------------------
+    best_model = search.best_estimator_
     y_test_pred = best_model.predict(X_test_feat)
     test_metrics = _metrics(y_test, y_test_pred)
 
@@ -196,16 +170,16 @@ def run(cfg: DictConfig) -> dict:
     # ---- Persist ------------------------------------------------------------
     results = {
         "run_name": cfg.run_name,
+        "kind": "vector_cv",
         "model": cfg.model.name,
         "featurizer": cfg.featurizer.name,
         "data": cfg.data.name,
         "n_train": int(len(X_train)),
         "n_test": int(len(X_test)),
-        "train_fraction": train_fraction,
+        "n_per_category": n_per_category,
         "n_classes": int(len(ds.target_names)),
-        "best_params": final_search.best_params_,
-        "best_inner_score": float(final_search.best_score_),
-        "nested_cv": {"folds": fold_records, "summary": nested_summary},
+        "best_params": search.best_params_,
+        "cv": cv_summary,
         "test": test_metrics,
         "embedding": embed_info,
     }

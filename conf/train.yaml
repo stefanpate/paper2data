@@ -2,20 +2,21 @@ defaults:
   - data: twenty_ng
   - featurizer: tfidf
   - model: nb
-  - cv: nested
+  - cv: kfold
   - _self_
 
-run_name: ${model.name}_${featurizer.name}_${data.name}_tf${train_fraction}
+run_name: ${model.name}_${featurizer.name}_${data.name}_n${n_per_category}
 seed: 42
 n_jobs: -1
 
 # Held-out test fraction (stratified split applied to all of 20NG)
 test_size: 0.2
 
-# Fraction of the training split actually used to fit models (stratified
-# subsample). Set to 1.0 to use all training data; lower values support
-# learning-curve / data-efficiency experiments.
-train_fraction: 1.0
+# Number of training docs per class used to fit models (stratified subsample),
+# mirroring the few-shot LLM runs' `few_shot.n_per_category`. Set to null to use
+# all available training data; positive integers support learning-curve /
+# data-efficiency experiments comparable to the LLM sweeps.
+n_per_category: null
 
 # Where to persist artifacts
 artifacts_dir: ${hydra:runtime.cwd}/artifacts/${run_name}

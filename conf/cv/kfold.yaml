@@ -1,0 +1,9 @@
+name: kfold
+# Number of stratified folds used to split train+val for hyperparameter
+# selection. The grid search scores each config across these folds; the best
+# config is then refit on all of train+val and evaluated once on the held-out
+# test set created by the initial train/test split.
+splits: 3
+shuffle: true
+# scoring metric used to select hyperparameters in the grid search
+scoring: f1_macro
