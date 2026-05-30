@@ -1,0 +1,34 @@
+{
+  "run_name": "logreg_bge_small_20ng_n4",
+  "kind": "vector_cv",
+  "model": "logreg",
+  "featurizer": "bge_small",
+  "data": "20ng",
+  "n_train": 80,
+  "n_test": 3770,
+  "n_per_category": 4,
+  "n_classes": 20,
+  "best_params": {
+    "clf__C": 10.0
+  },
+  "cv": {
+    "n_splits": 3,
+    "scoring": "f1_macro",
+    "best_score_mean": 0.36611111111111105,
+    "best_score_std": 0.09733802626941171
+  },
+  "test": {
+    "accuracy": 0.5687002652519894,
+    "f1_macro": 0.5575304314629298,
+    "f1_weighted": 0.5679243202849631
+  },
+  "embedding": {
+    "model_id": "BAAI/bge-small-en-v1.5",
+    "dim": 384,
+    "train_cache_key": "fcae7d66e8acb7fc776289ae",
+    "test_cache_key": "ca1eb8d6060325174f9d1770",
+    "train_cache_hit": true,
+    "test_cache_hit": true,
+    "encode_seconds": 0.0017214760009665042
+  }
+}

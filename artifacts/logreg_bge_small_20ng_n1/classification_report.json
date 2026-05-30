@@ -1,0 +1,135 @@
+{
+  "alt.atheism": {
+    "precision": 0.23026315789473684,
+    "recall": 0.21875,
+    "f1-score": 0.22435897435897437,
+    "support": 160.0
+  },
+  "comp.graphics": {
+    "precision": 0.4411764705882353,
+    "recall": 0.46153846153846156,
+    "f1-score": 0.45112781954887216,
+    "support": 195.0
+  },
+  "comp.os.ms-windows.misc": {
+    "precision": 0.3904761904761905,
+    "recall": 0.20812182741116753,
+    "f1-score": 0.271523178807947,
+    "support": 197.0
+  },
+  "comp.sys.ibm.pc.hardware": {
+    "precision": 0.17777777777777778,
+    "recall": 0.08163265306122448,
+    "f1-score": 0.11188811188811189,
+    "support": 196.0
+  },
+  "comp.sys.mac.hardware": {
+    "precision": 0.3415841584158416,
+    "recall": 0.35751295336787564,
+    "f1-score": 0.3493670886075949,
+    "support": 193.0
+  },
+  "comp.windows.x": {
+    "precision": 0.43781094527363185,
+    "recall": 0.4444444444444444,
+    "f1-score": 0.44110275689223055,
+    "support": 198.0
+  },
+  "misc.forsale": {
+    "precision": 0.6331658291457286,
+    "recall": 0.6461538461538462,
+    "f1-score": 0.6395939086294417,
+    "support": 195.0
+  },
+  "rec.autos": {
+    "precision": 0.39501779359430605,
+    "recall": 0.5606060606060606,
+    "f1-score": 0.46346555323590816,
+    "support": 198.0
+  },
+  "rec.motorcycles": {
+    "precision": 0.5,
+    "recall": 0.44221105527638194,
+    "f1-score": 0.4693333333333333,
+    "support": 199.0
+  },
+  "rec.sport.baseball": {
+    "precision": 0.7095238095238096,
+    "recall": 0.7487437185929648,
+    "f1-score": 0.7286063569682152,
+    "support": 199.0
+  },
+  "rec.sport.hockey": {
+    "precision": 0.8367346938775511,
+    "recall": 0.615,
+    "f1-score": 0.7089337175792507,
+    "support": 200.0
+  },
+  "sci.crypt": {
+    "precision": 0.10884353741496598,
+    "recall": 0.08080808080808081,
+    "f1-score": 0.0927536231884058,
+    "support": 198.0
+  },
+  "sci.electronics": {
+    "precision": 0.23193916349809887,
+    "recall": 0.3096446700507614,
+    "f1-score": 0.26521739130434785,
+    "support": 197.0
+  },
+  "sci.med": {
+    "precision": 0.5891891891891892,
+    "recall": 0.5505050505050505,
+    "f1-score": 0.5691906005221932,
+    "support": 198.0
+  },
+  "sci.space": {
+    "precision": 0.3780487804878049,
+    "recall": 0.3147208121827411,
+    "f1-score": 0.34349030470914127,
+    "support": 197.0
+  },
+  "soc.religion.christian": {
+    "precision": 0.5174603174603175,
+    "recall": 0.8190954773869347,
+    "f1-score": 0.6342412451361867,
+    "support": 199.0
+  },
+  "talk.politics.guns": {
+    "precision": 0.19943019943019943,
+    "recall": 0.38461538461538464,
+    "f1-score": 0.2626641651031895,
+    "support": 182.0
+  },
+  "talk.politics.mideast": {
+    "precision": 0.7048192771084337,
+    "recall": 0.6223404255319149,
+    "f1-score": 0.6610169491525424,
+    "support": 188.0
+  },
+  "talk.politics.misc": {
+    "precision": 0.15789473684210525,
+    "recall": 0.01935483870967742,
+    "f1-score": 0.034482758620689655,
+    "support": 155.0
+  },
+  "talk.religion.misc": {
+    "precision": 0.03626943005181347,
+    "recall": 0.05555555555555555,
+    "f1-score": 0.0438871473354232,
+    "support": 126.0
+  },
+  "accuracy": 0.4095490716180371,
+  "macro avg": {
+    "precision": 0.4008712729025368,
+    "recall": 0.3970677657899264,
+    "f1-score": 0.38831224924609997,
+    "support": 3770.0
+  },
+  "weighted avg": {
+    "precision": 0.41277819050864134,
+    "recall": 0.4095490716180371,
+    "f1-score": 0.4007592777908021,
+    "support": 3770.0
+  }
+}

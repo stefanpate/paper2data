@@ -1,0 +1,36 @@
+{
+  "run_name": "random_forest_bge_small_20ng_n4",
+  "kind": "vector_cv",
+  "model": "random_forest",
+  "featurizer": "bge_small",
+  "data": "20ng",
+  "n_train": 80,
+  "n_test": 3770,
+  "n_per_category": 4,
+  "n_classes": 20,
+  "best_params": {
+    "clf__max_features": "log2",
+    "clf__min_samples_leaf": 1,
+    "clf__n_estimators": 200
+  },
+  "cv": {
+    "n_splits": 3,
+    "scoring": "f1_macro",
+    "best_score_mean": 0.30777777777777776,
+    "best_score_std": 0.09771778462541382
+  },
+  "test": {
+    "accuracy": 0.4652519893899204,
+    "f1_macro": 0.4578317201243493,
+    "f1_weighted": 0.46573967823535467
+  },
+  "embedding": {
+    "model_id": "BAAI/bge-small-en-v1.5",
+    "dim": 384,
+    "train_cache_key": "fcae7d66e8acb7fc776289ae",
+    "test_cache_key": "ca1eb8d6060325174f9d1770",
+    "train_cache_hit": true,
+    "test_cache_hit": true,
+    "encode_seconds": 0.0019933699950343
+  }
+}

@@ -1,0 +1,19 @@
+# Claude Haiku 4.5 via the Anthropic Messages API with the Batch API.
+#
+# Pay-per-token (billed to Console credits, NOT the Pro plan) but unlocks the
+# Batch API (50% off, async <=24h). Requires ANTHROPIC_API_KEY in the env.
+# Classification uses forced tool use so the model is constrained to emit
+# {"category": <one of the 20 names>}; summaries are plain text.
+#
+# Batch flow: cache-miss docs are collected and submitted as one batch, polled
+# until done, then written into the same on-disk summary cache. Set use_batch
+# false for synchronous per-doc calls (full price; useful for quick smoke tests).
+name: claude_haiku
+provider: claude_api
+tag: claude-haiku-4-5
+temperature: 0.0
+seed: 0                          # ignored by Claude; kept for cache-key parity
+use_batch: true
+prompt_caching: false            # reserved; cache the static scaffolding in a follow-up
+poll_interval_s: 30
+max_concurrency: 4               # only used when use_batch=false

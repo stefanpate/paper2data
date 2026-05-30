@@ -1,0 +1,3 @@
+- model=logreg
+- featurizer=bge_small
+- n_per_category=10

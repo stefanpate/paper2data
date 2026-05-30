@@ -1,0 +1,27 @@
+{
+  "run_name": "random_forest_bge_small_20ng_n2",
+  "kind": "vector_cv",
+  "model": "random_forest",
+  "featurizer": "bge_small",
+  "data": "20ng",
+  "n_train": 40,
+  "n_test": 3770,
+  "n_per_category": 2,
+  "n_classes": 20,
+  "best_params": null,
+  "cv": null,
+  "test": {
+    "accuracy": 0.2816976127320955,
+    "f1_macro": 0.2731609042187861,
+    "f1_weighted": 0.27849785998030546
+  },
+  "embedding": {
+    "model_id": "BAAI/bge-small-en-v1.5",
+    "dim": 384,
+    "train_cache_key": "41fa7a3eac56c5c52bdd99cd",
+    "test_cache_key": "ca1eb8d6060325174f9d1770",
+    "train_cache_hit": true,
+    "test_cache_hit": true,
+    "encode_seconds": 0.0018191260096500628
+  }
+}
